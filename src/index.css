@@ -1,0 +1,9 @@
+body {
+  margin: 0;
+  background-color: #fffefc;
+}
+
+textarea {
+  font-family: monospace;
+  font-size: 1rem;
+}
