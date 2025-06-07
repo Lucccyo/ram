@@ -5,25 +5,45 @@ import { marked } from "marked";
 import { Menu, X, Save, Dices, Trash2, Plus, Columns2, Eye, Pencil } from "lucide-react";
 
 export default function App() {
-const [showNewTopicModal, setShowNewTopicModal] = useState(false);
-const [newTopicInput, setNewTopicInput] = useState("");
-const [error, setError] = useState<string | null>(null);
+  const [showNewTopicModal, setShowNewTopicModal] = useState(false);
+  const [newTopicInput, setNewTopicInput] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [topics, setTopics] = useState<string[]>([]);
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [htmlPreview, setHtmlPreview] = useState("");
   const [viewMode, setViewMode] = useState<"code" | "both" | "preview">("both");
   const [menuCollapsed, setMenuCollapsed] = useState(false);
+  const [savedNote, setSavedNote] = useState("");
+  const isModified = note !== savedNote;
+  const [warningUnsaved, setWarningUnsaved] = useState(false);
+  const [nextTopicTmp, setNextTopicTmp] = useState<string | null>(null);
 
   useEffect(() => {
-    refreshTopics();
+    invoke("list_notes")
+      .then((topics) => {
+        const topicList = topics as string[];
+        setTopics(topicList);
+        if (topicList.length > 0) {
+          const index = Math.floor(Math.random() * topicList.length);
+          setCurrentTopic(topicList[index]);
+        }
+      })
+      .catch((e) => console.error("Error loading topics list:", e));
   }, []);
 
   useEffect(() => {
     if (currentTopic) {
       invoke("load_note_from_file", { word: currentTopic })
-        .then((content) => setNote(content as string))
-        .catch(() => setNote(""));
+        .then((content) => {
+          const text = content as string;
+          setNote(text);
+          setSavedNote(text);
+        })
+        .catch(() => {
+          setNote("");
+          setSavedNote("");
+        });
     }
   }, [currentTopic]);
 
@@ -39,9 +59,9 @@ const [error, setError] = useState<string | null>(null);
 
   const saveNote = () => {
     if (!currentTopic) return;
-    invoke("save_note_to_file", { word: currentTopic, content: note }).catch((e) =>
-      alert("Error saving note: " + e)
-    );
+    invoke("save_note_to_file", { word: currentTopic, content: note })
+      .then(() => setSavedNote(note))
+      .catch((e) => alert("Error saving note: " + e));
   };
 
   const deleteTopic = () => {
@@ -56,30 +76,30 @@ const [error, setError] = useState<string | null>(null);
       .catch((e) => alert("Error deleting topic: " + e));
   };
 
-const addNewTopic = () => {
-  setNewTopicInput("");
-  setError(null);
-  setShowNewTopicModal(true);
-};
+  const addNewTopic = () => {
+    setNewTopicInput("");
+    setError(null);
+    setShowNewTopicModal(true);
+  };
 
-const confirmAddTopic = () => {
-  const topic = newTopicInput.trim();
-  if (!topic) return;
+  const confirmAddTopic = () => {
+    const topic = newTopicInput.trim();
+    if (!topic) return;
 
-  if (topics.includes(topic)) {
-    setError("This topic already exists.");
-    return;
-  }
+    if (topics.includes(topic)) {
+      setError("This topic already exists.");
+      return;
+    }
 
-  invoke("create_note", { word: topic })
-    .then(() => {
-      setCurrentTopic(topic);
-      setNote("");
-      refreshTopics();
-      setShowNewTopicModal(false);
-    })
-    .catch((e) => setError("Error creating topic: " + e));
-};
+    invoke("create_note", { word: topic })
+      .then(() => {
+        setCurrentTopic(topic);
+        setNote("");
+        refreshTopics();
+        setShowNewTopicModal(false);
+      })
+      .catch((e) => setError("Error creating topic: " + e));
+  };
 
 
   const randomTopic = () => {
@@ -95,7 +115,7 @@ const confirmAddTopic = () => {
     <div style={{ display: "flex", height: "100vh" }}>
       <div
         style={{
-          width: menuCollapsed ? 60 : 200,
+          width: menuCollapsed ? 50 : 200,
           transition: "width 0.3s",
           padding: 10,
           borderRight: "1px solid #ccc",
@@ -106,14 +126,14 @@ const confirmAddTopic = () => {
           <button onClick={() => setMenuCollapsed(!menuCollapsed)}
             style={{ cursor: "pointer" }}
           >
-            {menuCollapsed ? <Menu /> : <X />}
+            {menuCollapsed ? <Menu size={16}/> : <X size={16}/>}
           </button>
           <button onClick={addNewTopic} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}>
-            <Plus size={16}/>
+            <Plus size={16} />
             {!menuCollapsed && <span>Add</span>}
           </button>
           <button onClick={randomTopic} disabled={topics.length === 0} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}>
-            <Dices size={16}/>
+            <Dices size={16} />
             {!menuCollapsed && <span>Random</span>}
           </button>
         </div>
@@ -125,7 +145,14 @@ const confirmAddTopic = () => {
               {topics.map((topic) => (
                 <li
                   key={topic}
-                  onClick={() => setCurrentTopic(topic)}
+                  onClick={() => {
+                    if (isModified) {
+                      setWarningUnsaved(true);
+                      setNextTopicTmp(topic);
+                    } else {
+                      setCurrentTopic(topic);
+                    }
+                  }}
                   style={{
                     cursor: "pointer",
                     padding: "5px 10px",
@@ -141,17 +168,17 @@ const confirmAddTopic = () => {
         )}
       </div>
 
-      <div style={{ flex: 1, padding: 10, display: "flex", flexDirection: "column", gap: "10px"}}>
-        <h2>Note for {currentTopic || "..."}</h2>
+      <div style={{ flex: 1, padding: 10, display: "flex", flexDirection: "column", gap: "10px" }}>
+        <h2> {currentTopic || "..."}</h2>
 
         <div style={{ display: "flex", gap: "10px", marginBottom: 10, alignItems: "center" }}>
           <div style={{
-              display: "flex",
-              gap: "2px",
-              border: "1px solid #ccc",
-              padding: "2px",
-              borderRadius: "5px",
-            }}>
+            display: "flex",
+            gap: "2px",
+            border: "1px solid #ccc",
+            padding: "2px",
+            borderRadius: "5px",
+          }}>
             <button
               onClick={() => setViewMode("code")}
               style={{
@@ -164,7 +191,7 @@ const confirmAddTopic = () => {
                 border: "none",
               }}
             >
-              <Pencil size={20}/>
+              <Pencil size={20} />
             </button>
             <button
               onClick={() => setViewMode("both")}
@@ -178,7 +205,7 @@ const confirmAddTopic = () => {
                 border: "none",
               }}
             >
-              <Columns2 size={20}/>
+              <Columns2 size={20} />
             </button>
             <button
               onClick={() => setViewMode("preview")}
@@ -192,7 +219,7 @@ const confirmAddTopic = () => {
                 border: "none",
               }}
             >
-              <Eye size={20}/>
+              <Eye size={20} />
             </button>
           </div>
 
@@ -208,12 +235,12 @@ const confirmAddTopic = () => {
               border: "none",
               height: "41px",
               width: "41px",
-              backgroundColor: "#eee",
+              backgroundColor: "#F9D1D1",
               borderRadius: "5px",
             }}
             disabled={!currentTopic}
           >
-            <Trash2 size={20}/>
+            <Trash2 size={20} />
           </button>
           <button
             onClick={saveNote}
@@ -228,84 +255,172 @@ const confirmAddTopic = () => {
               border: "none",
               height: "41px",
               width: "41px",
-              backgroundColor: "#eee",
+              backgroundColor: isModified ? "#B6E4CB" : "#eee",
               borderRadius: "5px",
             }}
           >
-            <Save size={20}/>
+            <Save size={20} />
           </button>
+
         </div>
 
         {isEditorVisible && (
-          <textarea
-            style={{ outline: "0", flex: 1, width: "100%", fontFamily: "monospace", marginBottom: isPreviewVisible ? "10px" : "0" }}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            disabled={!currentTopic}
-          />
+          <>
+            <h3>Markdown Preview</h3>
+            <textarea
+              style={{ resize: "none", outline: "0", flex: 1, width: "100%", fontFamily: "monospace", marginBottom: isPreviewVisible ? "10px" : "0" }}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              disabled={!currentTopic}
+            />
+          </>
         )}
 
         {isPreviewVisible && (
           <>
-            <h3>Markdown Preview</h3>
+            <h3>Preview</h3>
             <div
               style={{
                 flex: 1,
                 border: "1px solid #ccc",
                 padding: 10,
-                backgroundColor: "#f9f9f9",
                 overflowY: "auto",
+                borderRadius: "5px",
               }}
               dangerouslySetInnerHTML={{ __html: htmlPreview }}
             />
           </>
         )}
       </div>
-{showNewTopicModal && (
-  <div
-    style={{
-      position: "fixed",
-      top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 999,
-    }}
-  >
-    <div
-      style={{
-        backgroundColor: "#fff",
-        padding: 20,
-        borderRadius: 10,
-        boxShadow: "0 0 10px rgba(0,0,0,0.3)",
-        minWidth: 300,
-      }}
-    >
-      <h3>New Topic</h3>
-      <input
-        type="text"
-        value={newTopicInput}
-        onChange={(e) => setNewTopicInput(e.target.value)}
-        style={{
-          width: "95%",
-          padding: 8,
-          marginBottom: 10,
-          border: "1px solid #ccc",
-          borderRadius: 4,
-        }}
-        placeholder="Enter topic name"
-      />
-      {error && (
-        <div style={{ color: "red", marginBottom: 10 }}>{error}</div>
+      {showNewTopicModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 999,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#fff",
+              padding: 20,
+              borderRadius: 10,
+              boxShadow: "0 0 10px rgba(0,0,0,0.3)",
+              minWidth: 300,
+            }}
+          >
+            <h3>New Topic</h3>
+            <input
+              type="text"
+              value={newTopicInput}
+              onChange={(e) => setNewTopicInput(e.target.value)}
+              style={{
+                width: "95%",
+                padding: 8,
+                marginBottom: 10,
+                border: "1px solid #ccc",
+                borderRadius: 4,
+              }}
+              placeholder="Enter topic name"
+            />
+            {error && (
+              <div style={{ color: "red", marginBottom: 10 }}>{error}</div>
+            )}
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+              <button onClick={() => setShowNewTopicModal(false)}>Cancel</button>
+              <button onClick={confirmAddTopic}>Add</button>
+            </div>
+          </div>
+        </div>
       )}
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-        <button onClick={() => setShowNewTopicModal(false)}>Cancel</button>
-        <button onClick={confirmAddTopic}>Add</button>
-      </div>
-    </div>
-  </div>
-)}
+
+
+      {warningUnsaved && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 999,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#fff",
+              padding: 20,
+              borderRadius: 10,
+              boxShadow: "0 0 10px rgba(0,0,0,0.3)",
+              minWidth: 300,
+            }}
+          >
+            <h3>Warning</h3>
+            <div style={{ marginBottom: "10px" }}>
+              <span>Your current note has been modified but not saved. If you switch topics, your changes will be lost.</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+              <button
+              style={{
+              display: "flex",
+              cursor: "pointer",
+              gap: "10px",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "10px",
+              border: "none",
+              // backgroundColor: "#B6E4CB",
+              backgroundColor: "#eee",
+              borderRadius: "5px",
+              }}
+              onClick={() => {
+                saveNote();
+                setCurrentTopic(nextTopicTmp);
+                setNextTopicTmp(null);
+                setWarningUnsaved(false);
+              }}>Save</button>
+              <button
+              style={{
+              display: "flex",
+              cursor: "pointer",
+              gap: "10px",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "10px",
+              border: "none",
+              // backgroundColor: "#F9D1D1",
+              backgroundColor: "#eee",
+              borderRadius: "5px",
+              }}
+              onClick={() => {
+                setCurrentTopic(nextTopicTmp);
+                setWarningUnsaved(false);
+                setNextTopicTmp(null);
+              }}>Discard</button>
+              <button
+              style={{
+              display: "flex",
+              cursor: "pointer",
+              gap: "10px",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "10px",
+              border: "none",
+              backgroundColor: "#eee",
+              borderRadius: "5px",
+              }}
+              onClick={() => {
+                setWarningUnsaved(false);
+              }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
