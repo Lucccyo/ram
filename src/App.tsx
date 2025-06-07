@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { marked } from "marked";
-
 import { Menu, X, Save, Dices, Trash2, Plus, Columns2, Eye, Pencil } from "lucide-react";
 
+import './index.css';
 export default function App() {
   const [showNewTopicModal, setShowNewTopicModal] = useState(false);
   const [newTopicInput, setNewTopicInput] = useState("");
@@ -18,6 +18,7 @@ export default function App() {
   const isModified = note !== savedNote;
   const [warningUnsaved, setWarningUnsaved] = useState(false);
   const [nextTopicTmp, setNextTopicTmp] = useState<string | null>(null);
+  const [deleteTopic, setDeleteTopic] = useState(false);
 
   useEffect(() => {
     invoke("list_notes")
@@ -64,18 +65,6 @@ export default function App() {
       .catch((e) => alert("Error saving note: " + e));
   };
 
-  const deleteTopic = () => {
-    if (!currentTopic) return;
-    if (!confirm(`Delete topic "${currentTopic}"?`)) return;
-    invoke("delete_note", { word: currentTopic })
-      .then(() => {
-        setCurrentTopic(null);
-        setNote("");
-        refreshTopics();
-      })
-      .catch((e) => alert("Error deleting topic: " + e));
-  };
-
   const addNewTopic = () => {
     setNewTopicInput("");
     setError(null);
@@ -112,36 +101,39 @@ export default function App() {
   const isPreviewVisible = viewMode === "preview" || viewMode === "both";
 
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
+    <div className="flex h-screen">
       <div
-        style={{
-          width: menuCollapsed ? 50 : 200,
-          transition: "width 0.3s",
-          padding: 10,
-          borderRight: "1px solid #ccc",
-          boxSizing: "border-box",
-        }}
+        className={`p-2 border-r text-xs border-r-zinc-200 box-border ${menuCollapsed ? "" : "w-[20em]"}`}
       >
-        <div style={{ display: "flex", gap: "10px", flexDirection: "column" }}>
+        <div className="flex gap-2 flex-col"
+        >
           <button onClick={() => setMenuCollapsed(!menuCollapsed)}
-            style={{ cursor: "pointer" }}
+            className="cursor-pointer"
           >
-            {menuCollapsed ? <Menu size={16}/> : <X size={16}/>}
+            {menuCollapsed ? <Menu size={16} /> : <X size={16} />}
           </button>
-          <button onClick={addNewTopic} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}>
+          <button onClick={addNewTopic}
+            className="cursor-pointer flex items-center gap-2"
+          >
             <Plus size={16} />
             {!menuCollapsed && <span>Add</span>}
           </button>
-          <button onClick={randomTopic} disabled={topics.length === 0} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}>
+          <button onClick={randomTopic} disabled={topics.length === 0}
+            className="cursor-pointer flex items-center gap-2"
+          >
             <Dices size={16} />
             {!menuCollapsed && <span>Random</span>}
           </button>
         </div>
 
         {!menuCollapsed && (
-          <>
-            <h3>Topics</h3>
-            <ul style={{ listStyle: "none", padding: 0 }}>
+          <div>
+            <h3
+              className="text-base mt-6"
+            >Topics</h3>
+            <ul
+              className="list-none"
+            >
               {topics.map((topic) => (
                 <li
                   key={topic}
@@ -153,122 +145,70 @@ export default function App() {
                       setCurrentTopic(topic);
                     }
                   }}
-                  style={{
-                    cursor: "pointer",
-                    padding: "5px 10px",
-                    backgroundColor: topic === currentTopic ? "#eee" : "transparent",
-                    borderRadius: 4,
-                  }}
+                  className={`text-xs cursor-pointer px-2 py-1 rounded-md ${topic === currentTopic ? "bg-zinc-200" : "bg-transparent"} truncate`}
                 >
                   {topic}
                 </li>
+
               ))}
             </ul>
-          </>
+          </div>
         )}
       </div>
 
-      <div style={{ flex: 1, padding: 10, display: "flex", flexDirection: "column", gap: "10px" }}>
-        <h2> {currentTopic || "..."}</h2>
+      <div
+        className="flex p-2 flex-col gap-4 w-screen"
+      >
+        <h2 className="text-xl underline"> {currentTopic || "No data."}</h2>
 
-        <div style={{ display: "flex", gap: "10px", marginBottom: 10, alignItems: "center" }}>
-          <div style={{
-            display: "flex",
-            gap: "2px",
-            border: "1px solid #ccc",
-            padding: "2px",
-            borderRadius: "5px",
-          }}>
+        <div
+          className="flex gap-2 items-center"
+        >
+          <div
+            className="flex gap-[2px] rounded-md border border-zinc-200 p-[2px]"
+          >
             <button
               onClick={() => setViewMode("code")}
-              style={{
-                backgroundColor: viewMode === "code" ? "#eee" : "white",
-                cursor: "pointer",
-                borderRadius: "5px",
-                padding: "5px",
-                width: "35px",
-                height: "35px",
-                border: "none",
-              }}
+              className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${viewMode === "code" ? "bg-zinc-200" : "bg-white"}`}
             >
-              <Pencil size={20} />
+              <Pencil size={14} />
             </button>
             <button
               onClick={() => setViewMode("both")}
-              style={{
-                backgroundColor: viewMode === "both" ? "#eee" : "white",
-                cursor: "pointer",
-                borderRadius: "5px",
-                padding: "5px",
-                width: "35px",
-                height: "35px",
-                border: "none",
-              }}
+              className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${viewMode === "both" ? "bg-zinc-200" : "bg-white"}`}
             >
-              <Columns2 size={20} />
+              <Columns2 size={14} />
             </button>
             <button
               onClick={() => setViewMode("preview")}
-              style={{
-                backgroundColor: viewMode === "preview" ? "#eee" : "white",
-                cursor: "pointer",
-                padding: "5px",
-                width: "35px",
-                height: "35px",
-                borderRadius: "5px",
-                border: "none",
-              }}
+              className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${viewMode === "preview" ? "bg-zinc-200" : "bg-white"}`}
             >
-              <Eye size={20} />
+              <Eye size={14} />
             </button>
           </div>
 
           <button
-            onClick={deleteTopic}
-            style={{
-              display: "flex",
-              cursor: "pointer",
-              gap: "10px",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "5px",
-              border: "none",
-              height: "41px",
-              width: "41px",
-              backgroundColor: "#F9D1D1",
-              borderRadius: "5px",
-            }}
+            onClick={() => setDeleteTopic(true)}
+            className={`flex justify-center items-center rounded-md cursor-pointer w-[36px] h-[36px] ${currentTopic != null ? "bg-red-200" : "bg-zinc-200 text-zinc-500 cursor-not-allowed"}`}
             disabled={!currentTopic}
           >
-            <Trash2 size={20} />
+            <Trash2 size={14} />
           </button>
           <button
             onClick={saveNote}
+            className={`flex justify-center items-center ${currentTopic != null && isModified ? "bg-green-200" : "bg-zinc-200 text-zinc-500 cursor-not-allowed"} rounded-md cursor-pointer w-[36px] h-[36px]`}
             disabled={!currentTopic}
-            style={{
-              display: "flex",
-              cursor: "pointer",
-              gap: "10px",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "5px",
-              border: "none",
-              height: "41px",
-              width: "41px",
-              backgroundColor: isModified ? "#B6E4CB" : "#eee",
-              borderRadius: "5px",
-            }}
           >
-            <Save size={20} />
+            <Save size={14} />
           </button>
 
         </div>
 
         {isEditorVisible && (
           <>
-            <h3>Markdown Preview</h3>
+            <h3>Editor</h3>
             <textarea
-              style={{ resize: "none", outline: "0", flex: 1, width: "100%", fontFamily: "monospace", marginBottom: isPreviewVisible ? "10px" : "0" }}
+              className={`p-2 rounded-md border resize-none outline-none text-xs flex font-mono ${isPreviewVisible ? "h-[50%]" : "h-[100%]"}`}
               value={note}
               onChange={(e) => setNote(e.target.value)}
               disabled={!currentTopic}
@@ -280,13 +220,7 @@ export default function App() {
           <>
             <h3>Preview</h3>
             <div
-              style={{
-                flex: 1,
-                border: "1px solid #ccc",
-                padding: 10,
-                overflowY: "auto",
-                borderRadius: "5px",
-              }}
+              className={`p-2 rounded-md border resize-none outline-none text-xs flex font-mono ${isEditorVisible ? "h-[50%]" : "h-[100%]"}`}
               dangerouslySetInnerHTML={{ __html: htmlPreview }}
             />
           </>
@@ -294,45 +228,29 @@ export default function App() {
       </div>
       {showNewTopicModal && (
         <div
-          style={{
-            position: "fixed",
-            top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 999,
-          }}
+          className="fixed inset-0 bg-zinc-500 bg-opacity-50 flex justify-center items-center z-999"
         >
           <div
-            style={{
-              backgroundColor: "#fff",
-              padding: 20,
-              borderRadius: 10,
-              boxShadow: "0 0 10px rgba(0,0,0,0.3)",
-              minWidth: 300,
-            }}
+            className="flex flex-col gap-2 bg-white p-4 rounded-md shadow-md"
           >
             <h3>New Topic</h3>
             <input
               type="text"
               value={newTopicInput}
               onChange={(e) => setNewTopicInput(e.target.value)}
-              style={{
-                width: "95%",
-                padding: 8,
-                marginBottom: 10,
-                border: "1px solid #ccc",
-                borderRadius: 4,
-              }}
+              className="p-2 text-xs border rounded-md border-zinc-200"
               placeholder="Enter topic name"
             />
             {error && (
-              <div style={{ color: "red", marginBottom: 10 }}>{error}</div>
+              <div
+                className="text-red-500"
+              >{error}</div>
             )}
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-              <button onClick={() => setShowNewTopicModal(false)}>Cancel</button>
-              <button onClick={confirmAddTopic}>Add</button>
+            <div
+              className="flex justify-end gap-2"
+            >
+              <button className="text-xs" onClick={() => setShowNewTopicModal(false)}>Cancel</button>
+              <button className="text-xs" onClick={confirmAddTopic}>Add</button>
             </div>
           </div>
         </div>
@@ -341,87 +259,80 @@ export default function App() {
 
       {warningUnsaved && (
         <div
-          style={{
-            position: "fixed",
-            top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 999,
-          }}
+          className="fixed inset-0 bg-zinc-500 bg-opacity-50 flex justify-center items-center z-999"
         >
           <div
-            style={{
-              backgroundColor: "#fff",
-              padding: 20,
-              borderRadius: 10,
-              boxShadow: "0 0 10px rgba(0,0,0,0.3)",
-              minWidth: 300,
-            }}
+            className="flex flex-col gap-2 bg-white p-4 rounded-md shadow-md"
           >
             <h3>Warning</h3>
-            <div style={{ marginBottom: "10px" }}>
-              <span>Your current note has been modified but not saved. If you switch topics, your changes will be lost.</span>
+            <div className="flex flex-col text-xs">
+              <span>Your current note has been modified but not saved.</span>
+              <span>If you switch topics, your changes will be lost.</span>
             </div>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+            <div
+              className="flex justify-end gap-2"
+            >
               <button
-              style={{
-              display: "flex",
-              cursor: "pointer",
-              gap: "10px",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "10px",
-              border: "none",
-              // backgroundColor: "#B6E4CB",
-              backgroundColor: "#eee",
-              borderRadius: "5px",
-              }}
-              onClick={() => {
-                saveNote();
-                setCurrentTopic(nextTopicTmp);
-                setNextTopicTmp(null);
-                setWarningUnsaved(false);
-              }}>Save</button>
+                className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-zinc-200 rounded-md text-xs"
+                onClick={() => {
+                  saveNote();
+                  setCurrentTopic(nextTopicTmp);
+                  setNextTopicTmp(null);
+                  setWarningUnsaved(false);
+                }}>Save</button>
               <button
-              style={{
-              display: "flex",
-              cursor: "pointer",
-              gap: "10px",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "10px",
-              border: "none",
-              // backgroundColor: "#F9D1D1",
-              backgroundColor: "#eee",
-              borderRadius: "5px",
-              }}
-              onClick={() => {
-                setCurrentTopic(nextTopicTmp);
-                setWarningUnsaved(false);
-                setNextTopicTmp(null);
-              }}>Discard</button>
+                className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-zinc-200 rounded-md text-xs"
+                onClick={() => {
+                  setCurrentTopic(nextTopicTmp);
+                  setWarningUnsaved(false);
+                  setNextTopicTmp(null);
+                }}>Discard</button>
               <button
-              style={{
-              display: "flex",
-              cursor: "pointer",
-              gap: "10px",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "10px",
-              border: "none",
-              backgroundColor: "#eee",
-              borderRadius: "5px",
-              }}
-              onClick={() => {
-                setWarningUnsaved(false);
-              }}>Cancel</button>
+                className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-zinc-200 rounded-md text-xs"
+                onClick={() => {
+                  setWarningUnsaved(false);
+                }}>Cancel</button>
             </div>
           </div>
         </div>
       )}
 
+
+      {deleteTopic && (
+        <div
+          className="fixed inset-0 bg-zinc-500 bg-opacity-50 flex justify-center items-center z-999"
+        >
+          <div
+            className="flex flex-col gap-2 bg-white p-4 rounded-md shadow-md"
+          >
+            <h3>Warning</h3>
+            <div className="flex flex-col text-xs">
+              <span>Are you sure you want to delete {currentTopic}?</span>
+            </div>
+            <div
+              className="flex justify-end gap-2"
+            >
+              <button
+                className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-zinc-200 rounded-md text-xs"
+                onClick={() => {
+    invoke("delete_note", { word: currentTopic })
+      .then(() => {
+        setCurrentTopic(null);
+        setNote("");
+        refreshTopics();
+      })
+      .catch((e) => alert("Error deleting topic: " + e));
+  setDeleteTopic(false);
+                }}>Delete</button>
+              <button
+                className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-zinc-200 rounded-md text-xs"
+                onClick={() => {
+  setDeleteTopic(false);
+                }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
