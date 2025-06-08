@@ -162,7 +162,7 @@ export default function App() {
         {!menuCollapsed && (
           <div>
             <h3 className="text-base p-0 m-0 mt-6">Topics</h3>
-            <ul className="list-none p-0 m-0">
+            <ul className="list-none p-0 m-0 max-h-[780px] overflow-y-auto pr-1">
               {topics.map((topic) => (
                 <li
                   key={topic}
