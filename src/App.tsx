@@ -20,7 +20,6 @@ import "./index.css";
 export default function App() {
   const [showNewTopicModal, setShowNewTopicModal] = useState(false);
   const [newTopicInput, setNewTopicInput] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [topics, setTopics] = useState<string[]>([]);
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
   const [note, setNote] = useState("");
@@ -63,15 +62,15 @@ export default function App() {
     }
   }, [currentTopic]);
 
-useEffect(() => {
-console.log("note =", note);
-  const renderMarkdown = async () => {
-    const html = await marked.parse(note);
-    setHtmlPreview(html);
-    console.log("htmlprev = ", htmlPreview)
-  };
-  renderMarkdown();
-}, [note]);
+  useEffect(() => {
+    console.log("note =", note);
+    const renderMarkdown = async () => {
+      const html = await marked.parse(note);
+      setHtmlPreview(html);
+      console.log("htmlprev = ", htmlPreview);
+    };
+    renderMarkdown();
+  }, [note]);
 
   const refreshTopics = () => {
     invoke("list_notes")
@@ -88,18 +87,12 @@ console.log("note =", note);
 
   const addNewTopic = () => {
     setNewTopicInput("");
-    setError(null);
     setShowNewTopicModal(true);
   };
 
   const confirmAddTopic = () => {
     const topic = newTopicInput.trim();
     if (!topic) return;
-
-    if (topics.includes(topic)) {
-      setError("This topic already exists.");
-      return;
-    }
 
     invoke("create_note", { word: topic })
       .then(() => {
@@ -108,7 +101,7 @@ console.log("note =", note);
         refreshTopics();
         setShowNewTopicModal(false);
       })
-      .catch((e) => setError("Error creating topic: " + e));
+      .catch((e) => alert("Error creating topic: " + e));
   };
 
   const randomTopic = () => {
@@ -136,14 +129,14 @@ console.log("note =", note);
         <div className="flex gap-2 flex-col">
           <button
             onClick={() => setMenuCollapsed(!menuCollapsed)}
-            className="cursor-pointer"
+            className="hover:bg-zinc-100 dark:hover:bg-zinc-800 p-1 rounded-md transition-all duration-200 cursor-pointer flex items-center gap-2"
           >
             {menuCollapsed ? <Menu size={16} /> : <X size={16} />}
           </button>
 
           <button
             onClick={addNewTopic}
-            className="cursor-pointer flex items-center gap-2"
+            className="hover:bg-zinc-100 dark:hover:bg-zinc-800 p-1 rounded-md transition-all duration-200 cursor-pointer flex items-center gap-2"
           >
             <Plus size={16} />
             {!menuCollapsed && <span>Add</span>}
@@ -152,12 +145,15 @@ console.log("note =", note);
           <button
             onClick={randomTopic}
             disabled={topics.length === 0}
-            className="cursor-pointer flex items-center gap-2"
+            className="hover:bg-zinc-100 dark:hover:bg-zinc-800 p-1 rounded-md transition-all duration-200 cursor-pointer flex items-center gap-2"
           >
             <Dices size={16} />
             {!menuCollapsed && <span>Random</span>}
           </button>
-         <button onClick={toggleDarkMode} className="cursor-pointer flex items-center gap-2">
+          <button
+            onClick={toggleDarkMode}
+            className="hover:bg-zinc-100 dark:hover:bg-zinc-800 p-1 rounded-md transition-all duration-200 cursor-pointer flex items-center gap-2"
+          >
             {darkMode ? <Sun size={16} /> : <Moon size={16} />}
             {!menuCollapsed && <span>{darkMode ? "Light" : "Dark"} mode</span>}
           </button>
@@ -178,8 +174,10 @@ console.log("note =", note);
                       setCurrentTopic(topic);
                     }
                   }}
-                  className={`text-xs cursor-pointer px-2 py-1 rounded-md ${
-                    topic === currentTopic ? "bg-zinc-200 dark:bg-zinc-700" : "bg-transparent"
+                  className={`text-xs cursor-pointer px-2 py-1 rounded-md transition-all duration-200 mb-1 ${
+                    topic === currentTopic
+                      ? "bg-zinc-200 dark:bg-zinc-700"
+                      : "bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   } truncate`}
                 >
                   {topic}
@@ -194,22 +192,47 @@ console.log("note =", note);
         <h2 className="text-2xl m-0 p-0">{currentTopic || "No data."}</h2>
 
         <div className="flex gap-2 items-center">
-          <div className="flex gap-[2px] rounded-md border border-zinc-200 dark:border-zinc-700 p-[2px]">
-            <button onClick={() => setViewMode("code")} className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${viewMode === "code" ? "bg-zinc-200 dark:bg-zinc-700" : "bg-white dark:bg-zinc-800"}`}>
+          <div className="flex gap-[2px] rounded-md border border-zinc-200 dark:border-zinc-700 p-[2px] transition-all duration-200">
+            <button
+              onClick={() => setViewMode("code")}
+              className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${
+                viewMode === "code"
+                  ? "bg-zinc-200 dark:bg-zinc-700"
+                  : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              }`}
+            >
               <Pencil size={14} />
             </button>
-            <button onClick={() => setViewMode("both")} className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${viewMode === "both" ? "bg-zinc-200 dark:bg-zinc-700" : "bg-white dark:bg-zinc-800"}`}>
+            <button
+              onClick={() => setViewMode("both")}
+              className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${
+                viewMode === "both"
+                  ? "bg-zinc-200 dark:bg-zinc-700"
+                  : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              }`}
+            >
               <Columns2 size={14} />
             </button>
-            <button onClick={() => setViewMode("preview")} className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${viewMode === "preview" ? "bg-zinc-200 dark:bg-zinc-700" : "bg-white dark:bg-zinc-800"}`}>
+            <button
+              onClick={() => setViewMode("preview")}
+              className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${
+                viewMode === "preview"
+                  ? "bg-zinc-200 dark:bg-zinc-700"
+                  : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              }`}
+            >
               <Eye size={14} />
             </button>
           </div>
 
           <button
             onClick={() => setDeleteTopic(true)}
-            className={`flex justify-center items-center rounded-md cursor-pointer w-[36px] h-[36px] 
-${currentTopic != null ? "bg-red-200 dark:bg-red-700" : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"}
+            className={`flex justify-center items-center rounded-md cursor-pointer w-[36px] h-[36px] transition-all duration-200
+${
+  currentTopic != null
+    ? "bg-red-200 dark:bg-red-700 hover:bg-red-300 dark:hover:bg-red-600"
+    : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"
+}
             `}
             disabled={!currentTopic}
           >
@@ -218,8 +241,12 @@ ${currentTopic != null ? "bg-red-200 dark:bg-red-700" : "bg-zinc-200 dark:bg-zin
 
           <button
             onClick={saveNote}
-            className={`flex justify-center items-center rounded-md cursor-pointer w-[36px] h-[36px]
-${currentTopic != null && isModified ? "bg-green-200 dark:bg-green-700" : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"}
+            className={`flex justify-center items-center rounded-md cursor-pointer w-[36px] h-[36px] transition-all duration-200
+${
+  currentTopic != null && isModified
+    ? "bg-green-200 dark:bg-green-700 hover:bg-green-300 dark:hover:bg-green-600"
+    : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"
+}
             `}
             disabled={!currentTopic}
           >
@@ -244,13 +271,13 @@ ${currentTopic != null && isModified ? "bg-green-200 dark:bg-green-700" : "bg-zi
         {isPreviewVisible && (
           <>
             <h3 className="text-base p-0 m-0">Preview</h3>
-<div
-  className={`mt-[-10px] p-2 rounded-md border outline-none text-xs flex flex-col w-full
+            <div
+              className={`mt-[-10px] p-2 rounded-md border outline-none text-xs flex flex-col w-full
     bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-black dark:text-white preview-html
     overflow-y-auto overflow-x-hidden break-words whitespace-pre-wrap
     ${isEditorVisible ? "h-[50%]" : "h-[100%]"}`}
-  dangerouslySetInnerHTML={{ __html: htmlPreview }}
-/>
+              dangerouslySetInnerHTML={{ __html: htmlPreview }}
+            />
           </>
         )}
       </div>
