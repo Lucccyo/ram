@@ -8,3 +8,9 @@
 
 The `install.sh` script compiles the Tauri application for the target operating system. It removes previous build artifacts and compiles the application in `release mode`.
 The resulting `AppImage` is copied to `~/programs/ram/ram.AppImage`, and a `.desktop` launcher is created or overwritten in `~/.local/share/applications` to allow launching the app from the system menu, even on Arch Linux :rocket:.
+
+## The look
+
+![RAM light mode](./img/ramlight.png)
+
+![RAM dark mode](./img/ramdark.png)
