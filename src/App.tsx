@@ -20,6 +20,7 @@ import "./index.css";
 
 export default function App() {
   const [showNewTopicModal, setShowNewTopicModal] = useState(false);
+  const [search, setSearch] = useState("");
   const [newTopicInput, setNewTopicInput] = useState("");
   const [renameTopicInput, setRenameTopicInput] = useState("");
   const [renameTopic, setRenameTopic] = useState(false);
@@ -66,11 +67,9 @@ export default function App() {
   }, [currentTopic]);
 
   useEffect(() => {
-    console.log("note =", note);
     const renderMarkdown = async () => {
       const html = await marked.parse(note);
       setHtmlPreview(html);
-      console.log("htmlprev = ", htmlPreview);
     };
     renderMarkdown();
   }, [note]);
@@ -98,12 +97,12 @@ export default function App() {
     const old_name = currentTopic.trim();
     const new_name = renameTopicInput.trim();
     invoke("rename_note", { oldWord: old_name, newWord: new_name })
-        .then(() => {
-          setCurrentTopic(new_name.trim());
-          refreshTopics();
-          setRenameTopic(false)
-        })
-        .catch((e) => alert("Error renaming note: " + e));
+      .then(() => {
+        setCurrentTopic(new_name.trim());
+        refreshTopics();
+        setRenameTopic(false)
+      })
+      .catch((e) => alert("Error renaming note: " + e));
   };
 
   const confirmAddTopic = () => {
@@ -138,9 +137,8 @@ export default function App() {
   return (
     <div className="flex h-screen">
       <div
-        className={`p-2 border-r text-xs border-r-zinc-200 dark:border-r-zinc-700 box-border ${
-          menuCollapsed ? "" : "w-[20em]"
-        }`}
+        className={`p-2 border-r text-xs border-r-zinc-200 dark:border-r-zinc-700 box-border ${menuCollapsed ? "" : "w-[20em]"
+          }`}
       >
         <div className="flex gap-2 flex-col">
           <button
@@ -178,27 +176,35 @@ export default function App() {
         {!menuCollapsed && (
           <div>
             <h3 className="text-base p-0 m-0 mt-6">Topics</h3>
-            <ul className="list-none p-0 m-0 max-h-[780px] overflow-y-auto pr-1">
-              {topics.map((topic) => (
-                <li
-                  key={topic}
-                  onClick={() => {
-                    if (isModified) {
-                      setWarningUnsaved(true);
-                      setNextTopicTmp(topic);
-                    } else {
-                      setCurrentTopic(topic);
-                    }
-                  }}
-                  className={`text-xs cursor-pointer px-2 py-1 rounded-md transition-all duration-200 mb-1 ${
-                    topic === currentTopic
-                      ? "bg-zinc-200 dark:bg-zinc-700"
-                      : "bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                  } truncate`}
-                >
-                  {topic}
-                </li>
-              ))}
+            <input
+              type="text"
+              placeholder="Search topic..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full mb-2 mt-1 px-2 py-1 rounded-md text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
+            />
+            <ul className="list-none p-0 m-0 max-h-[780px] overflow-y-auto pr-1 mt-2">
+              {topics
+                .filter((t) => t.toLowerCase().includes(search.toLowerCase()))
+                .map((topic) => (
+                  <li
+                    key={topic}
+                    onClick={() => {
+                      if (isModified) {
+                        setWarningUnsaved(true);
+                        setNextTopicTmp(topic);
+                      } else {
+                        setCurrentTopic(topic);
+                      }
+                    }}
+                    className={`text-xs cursor-pointer px-2 py-1 rounded-md transition-all duration-200 mb-1 ${topic === currentTopic
+                        ? "bg-zinc-200 dark:bg-zinc-700"
+                        : "bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                      } truncate`}
+                  >
+                    {topic}
+                  </li>
+                ))}
             </ul>
           </div>
         )}
@@ -211,31 +217,28 @@ export default function App() {
           <div className="flex gap-[2px] rounded-md border border-zinc-200 dark:border-zinc-700 p-[2px] transition-all duration-200">
             <button
               onClick={() => setViewMode("code")}
-              className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${
-                viewMode === "code"
+              className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${viewMode === "code"
                   ? "bg-zinc-200 dark:bg-zinc-700"
                   : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-              }`}
+                }`}
             >
               <Pencil size={14} />
             </button>
             <button
               onClick={() => setViewMode("both")}
-              className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${
-                viewMode === "both"
+              className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${viewMode === "both"
                   ? "bg-zinc-200 dark:bg-zinc-700"
                   : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-              }`}
+                }`}
             >
               <Columns2 size={14} />
             </button>
             <button
               onClick={() => setViewMode("preview")}
-              className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${
-                viewMode === "preview"
+              className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${viewMode === "preview"
                   ? "bg-zinc-200 dark:bg-zinc-700"
                   : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-              }`}
+                }`}
             >
               <Eye size={14} />
             </button>
@@ -244,11 +247,10 @@ export default function App() {
           <button
             onClick={() => setDeleteTopic(true)}
             className={`flex justify-center items-center rounded-md cursor-pointer w-[36px] h-[36px] transition-all duration-200
-${
-  currentTopic != null
-    ? "bg-red-200 dark:bg-red-700 hover:bg-red-300 dark:hover:bg-red-600"
-    : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"
-}
+${currentTopic != null
+                ? "bg-red-200 dark:bg-red-700 hover:bg-red-300 dark:hover:bg-red-600"
+                : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"
+              }
             `}
             disabled={!currentTopic}
           >
@@ -258,11 +260,10 @@ ${
           <button
             onClick={saveNote}
             className={`flex justify-center items-center rounded-md cursor-pointer w-[36px] h-[36px] transition-all duration-200
-${
-  currentTopic != null && isModified
-    ? "bg-green-200 dark:bg-green-700 hover:bg-green-300 dark:hover:bg-green-600"
-    : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"
-}
+${currentTopic != null && isModified
+                ? "bg-green-200 dark:bg-green-700 hover:bg-green-300 dark:hover:bg-green-600"
+                : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"
+              }
             `}
             disabled={!currentTopic}
           >
@@ -272,11 +273,10 @@ ${
           <button
             onClick={() => setRenameTopic(true)}
             className={`flex justify-center items-center rounded-md cursor-pointer w-[36px] h-[36px] transition-all duration-200
-${
-  currentTopic != null
-    ? "bg-zinc-200 dark:bg-zinc-800"
-    : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"
-}
+${currentTopic != null
+                ? "bg-zinc-200 dark:bg-zinc-800"
+                : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"
+              }
             `}
             disabled={!currentTopic}
           >
@@ -288,9 +288,8 @@ ${
           <>
             <h3 className="text-base p-0 m-0">Editor</h3>
             <textarea
-              className={`mt-[-10px] p-2 rounded-md border resize-y outline-none text-xs flex font-mono bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-black dark:text-white ${
-                isPreviewVisible ? "h-[50%]" : "h-[100%]"
-              }`}
+              className={`mt-[-10px] p-2 rounded-md border resize-y outline-none text-xs flex font-mono bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-black dark:text-white ${isPreviewVisible ? "h-[50%]" : "h-[100%]"
+                }`}
               value={note}
               onChange={(e) => setNote(e.target.value)}
               disabled={!currentTopic}
