@@ -9,6 +9,24 @@ fn notes_dir() -> PathBuf {
 }
 
 #[command]
+fn rename_note(old_word: String, new_word: String) -> Result<(), String> {
+    let mut old_path = notes_dir();
+    old_path.push(format!("{}.md", old_word));
+
+    let mut new_path = notes_dir();
+    new_path.push(format!("{}.md", new_word));
+
+    if !old_path.exists() {
+        return Err("Original note does not exist".to_string());
+    }
+    if new_path.exists() {
+        return Err("A note with the new name already exists".to_string());
+    }
+
+    fs::rename(old_path, new_path).map_err(|e| e.to_string())
+}
+
+#[command]
 fn save_note_to_file(word: String, content: String) -> Result<(), String> {
     let mut path = notes_dir();
     path.push(format!("{}.md", word));
@@ -68,6 +86,7 @@ pub fn run() {
             list_notes,
             delete_note,
             create_note,
+            rename_note,
             ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

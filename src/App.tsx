@@ -13,6 +13,7 @@ import {
   Pencil,
   Sun,
   Moon,
+  PencilLine,
 } from "lucide-react";
 
 import "./index.css";
@@ -20,6 +21,8 @@ import "./index.css";
 export default function App() {
   const [showNewTopicModal, setShowNewTopicModal] = useState(false);
   const [newTopicInput, setNewTopicInput] = useState("");
+  const [renameTopicInput, setRenameTopicInput] = useState("");
+  const [renameTopic, setRenameTopic] = useState(false);
   const [topics, setTopics] = useState<string[]>([]);
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
   const [note, setNote] = useState("");
@@ -88,6 +91,19 @@ export default function App() {
   const addNewTopic = () => {
     setNewTopicInput("");
     setShowNewTopicModal(true);
+  };
+
+  const confirmRenameTopic = () => {
+    if (!currentTopic) return;
+    const old_name = currentTopic.trim();
+    const new_name = renameTopicInput.trim();
+    invoke("rename_note", { oldWord: old_name, newWord: new_name })
+        .then(() => {
+          setCurrentTopic(new_name.trim());
+          refreshTopics();
+          setRenameTopic(false)
+        })
+        .catch((e) => alert("Error renaming note: " + e));
   };
 
   const confirmAddTopic = () => {
@@ -252,6 +268,20 @@ ${
           >
             <Save size={14} />
           </button>
+
+          <button
+            onClick={() => setRenameTopic(true)}
+            className={`flex justify-center items-center rounded-md cursor-pointer w-[36px] h-[36px] transition-all duration-200
+${
+  currentTopic != null
+    ? "bg-zinc-200 dark:bg-zinc-800"
+    : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"
+}
+            `}
+            disabled={!currentTopic}
+          >
+            <PencilLine size={14} />
+          </button>
         </div>
 
         {isEditorVisible && (
@@ -371,6 +401,35 @@ ${
                 }}
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {renameTopic && (
+        <div className="fixed inset-0 bg-zinc-900 bg-opacity-50 flex justify-center items-center z-999">
+          <div className="flex flex-col gap-2 bg-white dark:bg-zinc-800 p-4 rounded-md shadow-md">
+            <h3 className="m-0 p-0">Rename Topic</h3>
+            <input
+              type="text"
+              value={renameTopicInput}
+              onChange={(e) => setRenameTopicInput(e.target.value)}
+              className="p-2 text-xs border rounded-md bborder-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800"
+              placeholder="Enter a new name"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-zinc-200 dark:bg-zinc-700 rounded-md text-xs"
+                onClick={() => setRenameTopic(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-green-200 dark:bg-green-700 rounded-md text-xs"
+                onClick={confirmRenameTopic}
+              >
+                Rename
               </button>
             </div>
           </div>
