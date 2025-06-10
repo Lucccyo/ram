@@ -31,10 +31,21 @@ export default function App() {
   const [viewMode, setViewMode] = useState<"code" | "both" | "preview">("both");
   const [menuCollapsed, setMenuCollapsed] = useState(false);
   const [deleteTopic, setDeleteTopic] = useState(false);
-  const [darkMode, setDarkMode] = useState(() =>
-    document.documentElement.classList.contains("dark")
-  );
   const saveTimeout = useRef<NodeJS.Timeout | null>(null);
+  const [theme, setTheme] = useState("light")
+
+  function storeTheme(theme: "dark" | "light") {
+    localStorage.setItem("theme", theme);
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    setTheme(theme);
+  }
+
+  useEffect(() => {
+    const stored = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const theme = stored ?? (prefersDark ? "dark" : "light");
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, []);
 
   useEffect(() => {
     invoke("list_notes")
@@ -160,11 +171,14 @@ export default function App() {
     setCurrentTopic(topics[index]);
   };
 
-  const toggleDarkMode = () => {
-    const isDark = !darkMode;
-    setDarkMode(isDark);
-    document.documentElement.classList.toggle("dark", isDark);
-  };
+  // const toggleDarkMode = () => {
+  //   const isDark = !darkMode;
+  //   setDarkMode(isDark);
+  //   let t = ""
+  //   if (isDark) {t = "dark"} else {t = "light"}
+  //   setTheme(t);
+  //   document.documentElement.classList.toggle("dark", isDark);
+  // };
 
   const isEditorVisible = viewMode === "code" || viewMode === "both";
   const isPreviewVisible = viewMode === "preview" || viewMode === "both";
@@ -200,11 +214,14 @@ export default function App() {
             {!menuCollapsed && <span>Random</span>}
           </button>
           <button
-            onClick={toggleDarkMode}
+            onClick={() => {
+              const newTheme = document.documentElement.classList.contains("dark") ? "light" : "dark";
+              storeTheme(newTheme);
+            }}
             className="hover:bg-zinc-100 dark:hover:bg-zinc-800 p-1 rounded-md transition-all duration-200 cursor-pointer flex items-center gap-2"
           >
-            {darkMode ? <Sun size={16} /> : <Moon size={16} />}
-            {!menuCollapsed && <span>{darkMode ? "Light" : "Dark"} mode</span>}
+            {theme == "dark" ? <Sun size={16} /> : <Moon size={16} />}
+            {!menuCollapsed && <span>{theme == "dark" ? "Light" : "Dark"} mode</span>}
           </button>
         </div>
 
