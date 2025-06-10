@@ -334,6 +334,7 @@ ${currentTopic != null
               onChange={(e) => setNewTopicInput(e.target.value)}
               className="p-2 text-xs border rounded-md bborder-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800"
               placeholder="Enter topic name"
+              autoFocus
             />
             <div className="flex justify-end gap-2">
               <button
@@ -399,17 +400,24 @@ ${currentTopic != null
               onChange={(e) => setRenameTopicInput(e.target.value)}
               className="p-2 text-xs border rounded-md bborder-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800"
               placeholder="Enter a new name"
+              autoFocus
             />
             <div className="flex justify-end gap-2">
               <button
                 className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-zinc-200 dark:bg-zinc-700 rounded-md text-xs"
-                onClick={() => setRenameTopic(false)}
+                onClick={() => {
+                  setRenameTopic(false)
+                  setRenameTopicInput('');
+                }}
               >
                 Cancel
               </button>
               <button
                 className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-green-200 dark:bg-green-700 rounded-md text-xs"
-                onClick={confirmRenameTopic}
+                onClick={() => {
+                  confirmRenameTopic
+                  setRenameTopicInput('');
+                }}
               >
                 Rename
               </button>
