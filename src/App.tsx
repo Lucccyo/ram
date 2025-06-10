@@ -171,15 +171,6 @@ export default function App() {
     setCurrentTopic(topics[index]);
   };
 
-  // const toggleDarkMode = () => {
-  //   const isDark = !darkMode;
-  //   setDarkMode(isDark);
-  //   let t = ""
-  //   if (isDark) {t = "dark"} else {t = "light"}
-  //   setTheme(t);
-  //   document.documentElement.classList.toggle("dark", isDark);
-  // };
-
   const isEditorVisible = viewMode === "code" || viewMode === "both";
   const isPreviewVisible = viewMode === "preview" || viewMode === "both";
 
