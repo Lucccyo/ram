@@ -12,10 +12,10 @@ import {
   Pencil,
   Sun,
   Moon,
-  PencilLine,
 } from "lucide-react";
 
 import "./index.css";
+import { TagAdder } from "./components/TagAdder"
 
 export default function App() {
   const [showNewTopicModal, setShowNewTopicModal] = useState(false);
@@ -33,6 +33,7 @@ export default function App() {
   const [deleteTopic, setDeleteTopic] = useState(false);
   const saveTimeout = useRef<NodeJS.Timeout | null>(null);
   const [theme, setTheme] = useState("light")
+  const [tags, setTags] = useState<string[]>([]);
 
   function storeTheme(theme: "dark" | "light") {
     localStorage.setItem("theme", theme);
@@ -62,11 +63,17 @@ export default function App() {
 
   const loadNoteFromFile = async (topic: string) => {
     try {
-      const content: string = await invoke("load_note_from_file", { word: topic });
-      setNote(content);
+      const [loadedTags, loadedNote]: [string[], string] = await invoke<[string[], string]>(
+        "load_note_with_tags",
+        { word: topic }
+      );
+
+      setTags(loadedTags);
+      setNote(loadedNote);
     } catch (e) {
       console.error("Error loading note:", e);
       setNote("");
+      setTags([]);
     }
   };
 
@@ -80,11 +87,14 @@ export default function App() {
 
   const saveNoteToFile = async () => {
     if (!currentTopic) return;
-
     try {
-      await invoke("save_note_to_file", { word: currentTopic, content: note });
-    } catch (e) {
-      console.error("Error saving note:", e);
+      await invoke("save_note_with_tags", {
+        word: currentTopic,
+        tags,
+        body: note
+      });
+    } catch (error) {
+      console.error("Failed to save note:", error);
     }
   };
 
@@ -101,7 +111,7 @@ export default function App() {
         clearTimeout(saveTimeout.current);
       }
     };
-  }, [note, currentTopic]);
+  }, [note, currentTopic, tags]);
 
   useEffect(() => {
     if (saveTimeout.current) {
@@ -260,6 +270,23 @@ ${currentTopic != null
           > Edit </button>
         </div>
 
+        <div className="flex flex-row gap-1">
+          {tags.map((tag, index) => (
+            <span key={index} className="flex flex-row items-center justify-center gap-1 px-3 py-1 h-[32px] bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded mr-2">{tag}
+              <button
+                onClick={() =>
+                  setTags((prevTags) => prevTags.filter((t) => t !== tag))
+                }
+              >
+                <X size={14} />
+              </button>
+            </span>
+          ))}
+          <TagAdder saveTag={(tag) => {
+            setTags(prev => [...prev, tag]);
+          }} />
+        </div>
+
         <div className="flex gap-2 items-center">
           <div className="flex gap-[2px] rounded-md border border-zinc-200 dark:border-zinc-700 p-[2px] transition-all duration-200">
             <button
@@ -340,7 +367,7 @@ ${currentTopic != null
               type="text"
               value={newTopicInput}
               onChange={(e) => setNewTopicInput(e.target.value)}
-              className="p-2 text-xs border rounded-md bborder-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800"
+              className="p-2 text-xs border rounded-md border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800"
               placeholder="Enter topic name"
               autoFocus
             />
