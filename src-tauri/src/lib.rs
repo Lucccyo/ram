@@ -14,6 +14,9 @@ fn notes_dir() -> PathBuf {
 
 #[command]
 fn rename_note(old_word: String, new_word: String) -> Result<(), String> {
+    if old_word == new_word {
+        return Ok(());
+    }
     let mut old_path = notes_dir();
     old_path.push(format!("{}.md", old_word));
 
@@ -24,7 +27,7 @@ fn rename_note(old_word: String, new_word: String) -> Result<(), String> {
         return Err("Original note does not exist".to_string());
     }
     if new_path.exists() {
-        return Err("A note with the new name already exists".to_string());
+        return Err("A note has already this name".to_string());
     }
 
     fs::rename(old_path, new_path).map_err(|e| e.to_string())

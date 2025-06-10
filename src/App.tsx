@@ -26,6 +26,7 @@ export default function App() {
   const [topics, setTopics] = useState<string[]>([]);
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
   const [note, setNote] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [htmlPreview, setHtmlPreview] = useState("");
   const [viewMode, setViewMode] = useState<"code" | "both" | "preview">("both");
   const [menuCollapsed, setMenuCollapsed] = useState(false);
@@ -133,9 +134,10 @@ export default function App() {
       .then(() => {
         setCurrentTopic(new_name.trim());
         refreshTopics();
-        setRenameTopic(false)
+        setRenameTopic(false);
+        setRenameTopicInput('');
       })
-      .catch((e) => alert("Error renaming note: " + e));
+      .catch((e) => setError(e));
   };
 
   const confirmAddTopic = () => {
@@ -402,12 +404,14 @@ ${currentTopic != null
               placeholder="Enter a new name"
               autoFocus
             />
+            <span className="h-6 w-[230px] text-red-500"> {error} </span>
             <div className="flex justify-end gap-2">
               <button
                 className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-zinc-200 dark:bg-zinc-700 rounded-md text-xs"
                 onClick={() => {
-                  setRenameTopic(false)
+                  setRenameTopic(false);
                   setRenameTopicInput('');
+                  setError(null);
                 }}
               >
                 Cancel
@@ -415,8 +419,8 @@ ${currentTopic != null
               <button
                 className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-green-200 dark:bg-green-700 rounded-md text-xs"
                 onClick={() => {
-                  confirmRenameTopic
-                  setRenameTopicInput('');
+                  confirmRenameTopic();
+                  setError(null);
                 }}
               >
                 Rename
