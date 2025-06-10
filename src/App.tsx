@@ -34,6 +34,7 @@ export default function App() {
   const saveTimeout = useRef<NodeJS.Timeout | null>(null);
   const [theme, setTheme] = useState("light")
   const [tags, setTags] = useState<string[]>([]);
+  const [allTags, setAllTags] = useState<string[]>([]);
 
   function storeTheme(theme: "dark" | "light") {
     localStorage.setItem("theme", theme);
@@ -61,36 +62,83 @@ export default function App() {
       .catch((e) => console.error("Error loading topics list:", e));
   }, []);
 
+const deleteTag = async (topic: string, tag: string) => {
+  try {
+    await invoke("delete_tag", { tagLabel: tag, noteTitle: topic });
+    await loadTags(topic);
+  } catch (e) {
+    console.error("Error deleting tag:", e);
+  }
+};
+
+  const updtAllTags = async () => {
+    try {
+      const loadedTags = await invoke<string[]>("get_all_tags");
+      setAllTags(loadedTags);
+    } catch (e) {
+      console.error("Error fetching tags:", e);
+      setAllTags([]);
+    }
+  };
+
+  const loadTags = async (topic: string) => {
+    try {
+      const loaded_tags: string[] = await invoke("get_tags", { noteTitle: topic });
+      setTags(loaded_tags);
+    } catch (e) {
+      console.error("Error loading tags:", e);
+      setTags([]);
+    }
+  };
+
+  const addTag = async (topic: string, tag: string) => {
+    try {
+      await invoke("add_tag", { tagLabel: tag, noteTitle: topic });
+      await loadTags(topic);
+    } catch (e) {
+      console.error("Error adding tag:", e);
+    }
+  };
+
+  const saveTag = (tag: string) => {
+    if (currentTopic != null) {
+      addTag(currentTopic, tag).then(() => {
+        loadTags(currentTopic);
+        updtAllTags();
+      });
+    }
+  };
+
   const loadNoteFromFile = async (topic: string) => {
     try {
-      const [loadedTags, loadedNote]: [string[], string] = await invoke<[string[], string]>(
-        "load_note_with_tags",
-        { word: topic }
-      );
-
-      setTags(loadedTags);
-      setNote(loadedNote);
+      const loaded_note = await invoke<string>("load_note", { word: topic });
+      setNote(loaded_note);
+      setSearch("");
     } catch (e) {
       console.error("Error loading note:", e);
       setNote("");
-      setTags([]);
     }
   };
 
   useEffect(() => {
     if (currentTopic) {
       loadNoteFromFile(currentTopic);
+      loadTags(currentTopic);
     } else {
       setNote("");
+      setTags([]);
     }
   }, [currentTopic]);
+
+  useEffect(() => {
+    updtAllTags();
+  }, []);
 
   const saveNoteToFile = async () => {
     if (!currentTopic) return;
     try {
-      await invoke("save_note_with_tags", {
+      await invoke("save_note", {
         word: currentTopic,
-        tags,
         body: note
       });
     } catch (error) {
@@ -111,7 +159,7 @@ export default function App() {
         clearTimeout(saveTimeout.current);
       }
     };
-  }, [note, currentTopic, tags]);
+  }, [note, currentTopic]);
 
   useEffect(() => {
     if (saveTimeout.current) {
@@ -176,8 +224,11 @@ export default function App() {
   };
 
   const randomTopic = () => {
-    if (topics.length === 0) return;
-    const index = Math.floor(Math.random() * topics.length);
+    if (topics.length < 2) return;
+    let index = 0;
+    do {
+      index = Math.floor(Math.random() * topics.length);
+    } while (currentTopic == topics[index])
     setCurrentTopic(topics[index]);
   };
 
@@ -239,9 +290,9 @@ export default function App() {
             <ul className="list-none p-0 m-0 max-h-[780px] overflow-y-auto pr-1 mt-2">
               {topics
                 .filter((t) => t.toLowerCase().includes(search.toLowerCase()))
-                .map((topic) => (
+                .map((topic, index) => (
                   <li
-                    key={topic}
+                    key={index}
                     onClick={() => setCurrentTopic(topic)}
                     className={`text-xs cursor-pointer px-2 py-1 rounded-md transition-all duration-200 mb-1 ${topic === currentTopic
                       ? "bg-zinc-200 dark:bg-zinc-700"
@@ -273,18 +324,20 @@ ${currentTopic != null
         <div className="flex flex-row gap-1">
           {tags.map((tag, index) => (
             <span key={index} className="flex flex-row items-center justify-center gap-1 px-3 py-1 h-[32px] bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded mr-2">{tag}
-              <button
-                onClick={() =>
-                  setTags((prevTags) => prevTags.filter((t) => t !== tag))
+            <button
+              onClick={() => {
+                if (currentTopic != null) {
+                  deleteTag(currentTopic, tag);
                 }
-              >
+              }}
+            >
                 <X size={14} />
               </button>
             </span>
           ))}
-          <TagAdder saveTag={(tag) => {
-            setTags(prev => [...prev, tag]);
-          }} />
+          <div className="h-[32px]">
+            <TagAdder saveTag={saveTag} allTags={allTags} />
+          </div>
         </div>
 
         <div className="flex gap-2 items-center">
