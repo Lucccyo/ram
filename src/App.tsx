@@ -247,7 +247,18 @@ export default function App() {
       </div>
 
       <div className="flex p-2 flex-col gap-4 w-screen">
-        <h2 className="text-2xl m-0 p-0">{currentTopic || "No data."}</h2>
+        <div className="flex flex-row justify-between items-center">
+          <h2 className="text-2xl m-0 p-0">{currentTopic || "No data."}</h2>
+          <button
+            onClick={() => setRenameTopic(true)}
+            className={`flex justify-center items-center rounded-md cursor-pointer  transition-all duration-200 mr-2 py-2 px-4
+${currentTopic != null
+                ? "bg-zinc-200 dark:bg-zinc-800"
+                : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"
+              }
+            `}
+          > Edit </button>
+        </div>
 
         <div className="flex gap-2 items-center">
           <div className="flex gap-[2px] rounded-md border border-zinc-200 dark:border-zinc-700 p-[2px] transition-all duration-200">
@@ -291,19 +302,6 @@ ${currentTopic != null
             disabled={!currentTopic}
           >
             <Trash2 size={14} />
-          </button>
-
-          <button
-            onClick={() => setRenameTopic(true)}
-            className={`flex justify-center items-center rounded-md cursor-pointer w-[36px] h-[36px] transition-all duration-200
-${currentTopic != null
-                ? "bg-zinc-200 dark:bg-zinc-800"
-                : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"
-              }
-            `}
-            disabled={!currentTopic}
-          >
-            <PencilLine size={14} />
           </button>
         </div>
 
