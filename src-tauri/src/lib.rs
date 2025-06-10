@@ -1,9 +1,13 @@
 use std::{fs, env, path::PathBuf};
 use tauri::command;
+use std::fs::File;
+use std::io::Write;
+
+const NOTE_DIR: &str = "test";
 
 fn notes_dir() -> PathBuf {
     let mut path = dirs::document_dir().expect("Unable to find Documents directory.");
-    path.push("ram_notes");
+    path.push(NOTE_DIR);
     fs::create_dir_all(&path).expect("Error during the creation of ram_notes directory.");
     path
 }
@@ -24,6 +28,17 @@ fn rename_note(old_word: String, new_word: String) -> Result<(), String> {
     }
 
     fs::rename(old_path, new_path).map_err(|e| e.to_string())
+}
+
+#[command]
+fn write_note(topic: String, content: String) -> Result<(), String> {
+    let mut path = notes_dir();
+    path.push(format!("{}.md", topic));
+
+    let mut file = File::create(&path).map_err(|e| e.to_string())?;
+    file.write_all(content.as_bytes()).map_err(|e| e.to_string())?;
+
+    Ok(())
 }
 
 #[command]
@@ -86,6 +101,7 @@ pub fn run() {
             list_notes,
             delete_note,
             create_note,
+            write_note,
             rename_note,
             ])
         .run(tauri::generate_context!())

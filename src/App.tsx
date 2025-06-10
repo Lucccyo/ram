@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { marked } from "marked";
 import {
   Menu,
   X,
-  Save,
   Dices,
   Trash2,
   Plus,
@@ -30,14 +29,12 @@ export default function App() {
   const [htmlPreview, setHtmlPreview] = useState("");
   const [viewMode, setViewMode] = useState<"code" | "both" | "preview">("both");
   const [menuCollapsed, setMenuCollapsed] = useState(false);
-  const [savedNote, setSavedNote] = useState("");
-  const isModified = note !== savedNote;
-  const [warningUnsaved, setWarningUnsaved] = useState(false);
-  const [nextTopicTmp, setNextTopicTmp] = useState<string | null>(null);
   const [deleteTopic, setDeleteTopic] = useState(false);
   const [darkMode, setDarkMode] = useState(() =>
     document.documentElement.classList.contains("dark")
   );
+  const saveTimeout = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     invoke("list_notes")
       .then((topics) => {
@@ -51,20 +48,63 @@ export default function App() {
       .catch((e) => console.error("Error loading topics list:", e));
   }, []);
 
+  const loadNoteFromFile = async (topic: string) => {
+    try {
+      const content: string = await invoke("load_note_from_file", { word: topic });
+      setNote(content);
+    } catch (e) {
+      console.error("Error loading note:", e);
+      setNote("");
+    }
+  };
+
   useEffect(() => {
     if (currentTopic) {
-      invoke("load_note_from_file", { word: currentTopic })
-        .then((content) => {
-          const text = content as string;
-          setNote(text);
-          setSavedNote(text);
-        })
-        .catch(() => {
-          setNote("");
-          setSavedNote("");
-        });
+      loadNoteFromFile(currentTopic);
+    } else {
+      setNote("");
     }
   }, [currentTopic]);
+
+  const saveNoteToFile = async () => {
+    if (!currentTopic) return;
+
+    try {
+      await invoke("save_note_to_file", { word: currentTopic, content: note });
+    } catch (e) {
+      console.error("Error saving note:", e);
+    }
+  };
+
+  useEffect(() => {
+    if (saveTimeout.current) {
+      clearTimeout(saveTimeout.current);
+    }
+    saveTimeout.current = setTimeout(() => {
+      saveNoteToFile();
+    }, 1000);
+
+    return () => {
+      if (saveTimeout.current) {
+        clearTimeout(saveTimeout.current);
+      }
+    };
+  }, [note, currentTopic]);
+
+  useEffect(() => {
+    if (saveTimeout.current) {
+      clearTimeout(saveTimeout.current);
+    }
+    saveTimeout.current = setTimeout(() => {
+      saveNoteToFile();
+    }, 1000);
+
+    return () => {
+      if (saveTimeout.current) {
+        clearTimeout(saveTimeout.current);
+      }
+    };
+  }, [note, currentTopic]);
 
   useEffect(() => {
     const renderMarkdown = async () => {
@@ -78,13 +118,6 @@ export default function App() {
     invoke("list_notes")
       .then((topics) => setTopics(topics as string[]))
       .catch((e) => console.error("Error loading topics list:", e));
-  };
-
-  const saveNote = () => {
-    if (!currentTopic) return;
-    invoke("save_note_to_file", { word: currentTopic, content: note })
-      .then(() => setSavedNote(note))
-      .catch((e) => alert("Error saving note: " + e));
   };
 
   const addNewTopic = () => {
@@ -189,17 +222,10 @@ export default function App() {
                 .map((topic) => (
                   <li
                     key={topic}
-                    onClick={() => {
-                      if (isModified) {
-                        setWarningUnsaved(true);
-                        setNextTopicTmp(topic);
-                      } else {
-                        setCurrentTopic(topic);
-                      }
-                    }}
+                    onClick={() => setCurrentTopic(topic)}
                     className={`text-xs cursor-pointer px-2 py-1 rounded-md transition-all duration-200 mb-1 ${topic === currentTopic
-                        ? "bg-zinc-200 dark:bg-zinc-700"
-                        : "bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                      ? "bg-zinc-200 dark:bg-zinc-700"
+                      : "bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800"
                       } truncate`}
                   >
                     {topic}
@@ -218,8 +244,8 @@ export default function App() {
             <button
               onClick={() => setViewMode("code")}
               className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${viewMode === "code"
-                  ? "bg-zinc-200 dark:bg-zinc-700"
-                  : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                ? "bg-zinc-200 dark:bg-zinc-700"
+                : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 }`}
             >
               <Pencil size={14} />
@@ -227,8 +253,8 @@ export default function App() {
             <button
               onClick={() => setViewMode("both")}
               className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${viewMode === "both"
-                  ? "bg-zinc-200 dark:bg-zinc-700"
-                  : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                ? "bg-zinc-200 dark:bg-zinc-700"
+                : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 }`}
             >
               <Columns2 size={14} />
@@ -236,8 +262,8 @@ export default function App() {
             <button
               onClick={() => setViewMode("preview")}
               className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${viewMode === "preview"
-                  ? "bg-zinc-200 dark:bg-zinc-700"
-                  : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                ? "bg-zinc-200 dark:bg-zinc-700"
+                : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 }`}
             >
               <Eye size={14} />
@@ -255,19 +281,6 @@ ${currentTopic != null
             disabled={!currentTopic}
           >
             <Trash2 size={14} />
-          </button>
-
-          <button
-            onClick={saveNote}
-            className={`flex justify-center items-center rounded-md cursor-pointer w-[36px] h-[36px] transition-all duration-200
-${currentTopic != null && isModified
-                ? "bg-green-200 dark:bg-green-700 hover:bg-green-300 dark:hover:bg-green-600"
-                : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"
-              }
-            `}
-            disabled={!currentTopic}
-          >
-            <Save size={14} />
           </button>
 
           <button
@@ -334,36 +347,6 @@ ${currentTopic != null
                 onClick={confirmAddTopic}
               >
                 Add
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {warningUnsaved && (
-        <div className="fixed inset-0 bg-zinc-900 bg-opacity-50 flex justify-center items-center z-999">
-          <div className="flex flex-col gap-2 bg-white dark:bg-zinc-800 p-4 rounded-md shadow-md">
-            <h3 className="m-0 p-0">Warning</h3>
-            <div className="flex flex-col text-xs">
-              <span>Your current note has been modified but not saved.</span>
-              <span>If you switch topics, your changes will be lost.</span>
-            </div>
-            <div className="flex justify-end gap-2">
-              <button
-                className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-zinc-200 dark:bg-zinc-700 rounded-md text-xs"
-                onClick={() => setWarningUnsaved(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-red-200 dark:bg-red-700 rounded-md text-xs"
-                onClick={() => {
-                  if (nextTopicTmp) setCurrentTopic(nextTopicTmp);
-                  setWarningUnsaved(false);
-                  setNextTopicTmp(null);
-                }}
-              >
-                Switch Topic
               </button>
             </div>
           </div>
