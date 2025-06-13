@@ -31,7 +31,7 @@ export default function App() {
   const [viewMode, setViewMode] = useState<"code" | "both" | "preview">("both");
   const [menuCollapsed, setMenuCollapsed] = useState(false);
   const [deleteTopic, setDeleteTopic] = useState(false);
-  const saveTimeout = useRef<NodeJS.Timeout | null>(null);
+  const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [theme, setTheme] = useState("light")
   const [tags, setTags] = useState<string[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
