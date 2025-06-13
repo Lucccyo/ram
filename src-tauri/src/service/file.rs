@@ -64,12 +64,16 @@ pub fn list_notes(state: tauri::State<'_, AppState>) -> Result<Vec<String>, Stri
     let mut words = vec![];
     for entry in entries {
         let entry = entry.map_err(|e| e.to_string())?;
-        if let Some(name) = entry.path().file_stem().and_then(|s| s.to_str()) {
-            words.push(name.to_string());
+        let path = entry.path();
+        if path.extension().and_then(|ext| ext.to_str()) == Some("md") {
+            if let Some(name) = path.file_stem().and_then(|s| s.to_str()) {
+                words.push(name.to_string());
+            }
         }
     }
     Ok(words)
 }
+
 
 #[tauri::command]
 pub fn delete_note(state: tauri::State<'_, AppState>, word: String) -> Result<(), String> {
