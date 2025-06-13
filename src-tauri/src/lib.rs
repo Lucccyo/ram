@@ -11,7 +11,7 @@ use service::json::{add_tag, get_tags, delete_tag, get_all_tags};
 use std::sync::{Arc, Mutex};
 use std::fs::{OpenOptions};
 
-const NOTE_DIR: &str = "test";
+const NOTE_DIR: &str = "ram_notes";
 const JSON_FILE: &str = "data.json";
 
 #[derive(Clone)]
