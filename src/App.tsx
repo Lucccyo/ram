@@ -463,10 +463,16 @@ ${currentTopic != null
                   if (!currentTopic) return;
                   invoke("delete_note", { word: currentTopic })
                     .then(() => {
+                      const updatedTopics = topics.filter(topic => topic !== currentTopic);
+                      setTopics(updatedTopics);
                       setDeleteTopic(false);
+                      if (updatedTopics.length === 0) {
+                        setCurrentTopic(null);
                       setNote("");
-                      setCurrentTopic(null);
-                      refreshTopics();
+                      } else {
+                        const random = updatedTopics[Math.floor(Math.random() * updatedTopics.length)];
+                        setCurrentTopic(random);
+                      }
                     })
                     .catch(() => alert("Error deleting topic"));
                 }}
