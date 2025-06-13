@@ -35,12 +35,51 @@ export default function App() {
   const [theme, setTheme] = useState("light")
   const [tags, setTags] = useState<string[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [filteredTopics, setFilteredTopics] = useState<string[]>([]);
 
   function storeTheme(theme: "dark" | "light") {
     localStorage.setItem("theme", theme);
     document.documentElement.classList.toggle("dark", theme === "dark");
     setTheme(theme);
   }
+
+  const filterTopicsByTags = async () => {
+    if (selectedTags.length === 0) {
+      setFilteredTopics(topics);
+      return;
+    }
+    const matches: string[] = [];
+    for (const topic of topics) {
+      try {
+        const topicTags: string[] = await invoke("get_tags", { noteTitle: topic });
+        if (selectedTags.every(tag => topicTags.includes(tag))) {
+          matches.push(topic);
+        }
+      } catch (e) {
+        console.error(`Failed to get tags for ${topic}:`, e);
+      }
+    }
+    setFilteredTopics(matches);
+  };
+
+  useEffect(() => {
+    filterTopicsByTags();
+  }, [selectedTags, topics]);
+
+  useEffect(() => {
+    invoke("list_notes")
+      .then((topics) => {
+        const topicList = topics as string[];
+        setTopics(topicList);
+        setFilteredTopics(topicList); // initialisation
+        if (topicList.length > 0) {
+          const index = Math.floor(Math.random() * topicList.length);
+          setCurrentTopic(topicList[index]);
+        }
+      })
+      .catch((e) => console.error("Error loading topics list:", e));
+  }, []);
 
   useEffect(() => {
     const stored = localStorage.getItem("theme");
@@ -62,14 +101,14 @@ export default function App() {
       .catch((e) => console.error("Error loading topics list:", e));
   }, []);
 
-const deleteTag = async (topic: string, tag: string) => {
-  try {
-    await invoke("delete_tag", { tagLabel: tag, noteTitle: topic });
-    await loadTags(topic);
-  } catch (e) {
-    console.error("Error deleting tag:", e);
-  }
-};
+  const deleteTag = async (topic: string, tag: string) => {
+    try {
+      await invoke("delete_tag", { tagLabel: tag, noteTitle: topic });
+      await loadTags(topic);
+    } catch (e) {
+      console.error("Error deleting tag:", e);
+    }
+  };
 
   const updtAllTags = async () => {
     try {
@@ -195,6 +234,15 @@ const deleteTag = async (topic: string, tag: string) => {
     setShowNewTopicModal(true);
   };
 
+  const refreshTags = async () => {
+    try {
+      const updatedTags: string[] = await invoke("get_all_tags");
+      setAllTags(updatedTags);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des tags :", error);
+    }
+  };
+
   const confirmRenameTopic = () => {
     if (!currentTopic) return;
     const old_name = currentTopic.trim();
@@ -278,32 +326,60 @@ const deleteTag = async (topic: string, tag: string) => {
         </div>
 
         {!menuCollapsed && (
-          <div>
-            <h3 className="text-base p-0 m-0 mt-6">Topics</h3>
-            <input
-              type="text"
-              placeholder="Search topic..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full mb-2 mt-1 px-2 py-1 rounded-md text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
-            />
-            <ul className="list-none p-0 m-0 max-h-[780px] overflow-y-auto pr-1 mt-2">
-              {topics
-                .filter((t) => t.toLowerCase().includes(search.toLowerCase()))
-                .map((topic, index) => (
-                  <li
-                    key={index}
-                    onClick={() => setCurrentTopic(topic)}
-                    className={`text-xs cursor-pointer px-2 py-1 rounded-md transition-all duration-200 mb-1 ${topic === currentTopic
-                      ? "bg-zinc-200 dark:bg-zinc-700"
-                      : "bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                      } truncate`}
-                  >
-                    {topic}
-                  </li>
-                ))}
-            </ul>
-          </div>
+          <>
+            <div className="my-4">
+              <h4 className="text-sm mb-1">Filter by tags</h4>
+              <div className="flex flex-wrap gap-1">
+                {allTags.map((tag) => {
+                  const isSelected = selectedTags.includes(tag);
+                  return (
+                    <button
+                      key={tag}
+                      onClick={() => {
+                        setSelectedTags((prev) =>
+                          isSelected
+                            ? prev.filter((t) => t !== tag)
+                            : [...prev, tag]
+                        );
+                      }}
+                      className={`px-2 py-1 rounded text-xs border ${isSelected
+                        ? "bg-zinc-200 dark:bg-zinc-700 border-white"
+                        : "bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white border-zinc-800"
+                        }`}
+                    >
+                      {tag}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-base p-0 m-0 mt-6">Topics</h3>
+              <input
+                type="text"
+                placeholder="Search topic..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full mb-2 mt-1 px-2 py-1 rounded-md text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
+              />
+              <ul className="list-none p-0 m-0 max-h-[780px] overflow-y-auto pr-1 mt-2">
+                {filteredTopics
+                  .filter((t) => t.toLowerCase().includes(search.toLowerCase()))
+                  .map((topic, index) => (
+                    <li
+                      key={index}
+                      onClick={() => setCurrentTopic(topic)}
+                      className={`text-xs cursor-pointer px-2 py-1 rounded-md transition-all duration-200 mb-1 ${topic === currentTopic
+                        ? "bg-zinc-200 dark:bg-zinc-700"
+                        : "bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                        } truncate`}
+                    >
+                      {topic}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          </>
         )}
       </div>
 
@@ -313,7 +389,7 @@ const deleteTag = async (topic: string, tag: string) => {
           <button
             onClick={() => setRenameTopic(true)}
             className={`flex justify-center items-center rounded-md cursor-pointer  transition-all duration-200 mr-2 py-2 px-4
-${currentTopic != null
+                ${currentTopic != null
                 ? "bg-zinc-200 dark:bg-zinc-800"
                 : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"
               }
@@ -324,13 +400,14 @@ ${currentTopic != null
         <div className="flex flex-row gap-1">
           {tags.map((tag, index) => (
             <span key={index} className="flex flex-row items-center justify-center gap-1 px-3 py-1 h-[32px] bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded mr-2">{tag}
-            <button
-              onClick={() => {
-                if (currentTopic != null) {
-                  deleteTag(currentTopic, tag);
-                }
-              }}
-            >
+              <button
+                onClick={() => {
+                  if (currentTopic != null) {
+                    deleteTag(currentTopic, tag);
+                    refreshTags();
+                  }
+                }}
+              >
                 <X size={14} />
               </button>
             </span>
@@ -374,7 +451,7 @@ ${currentTopic != null
           <button
             onClick={() => setDeleteTopic(true)}
             className={`flex justify-center items-center rounded-md cursor-pointer w-[36px] h-[36px] transition-all duration-200
-${currentTopic != null
+                ${currentTopic != null
                 ? "bg-red-200 dark:bg-red-700 hover:bg-red-300 dark:hover:bg-red-600"
                 : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"
               }
@@ -389,8 +466,10 @@ ${currentTopic != null
           <>
             <h3 className="text-base p-0 m-0">Editor</h3>
             <textarea
-              className={`mt-[-10px] p-2 rounded-md border resize-y outline-none text-xs flex font-mono bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-black dark:text-white ${isPreviewVisible ? "h-[50%]" : "h-[100%]"
-                }`}
+              className={`mt-[-10px] p-2 rounded-md border resize-y outline-none text-xs flex font-mono bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-black dark:text-white
+                ${isPreviewVisible
+                ? "h-[50%]"
+                : "h-[100%]" }`}
               value={note}
               onChange={(e) => setNote(e.target.value)}
               disabled={!currentTopic}
@@ -402,10 +481,10 @@ ${currentTopic != null
           <>
             <h3 className="text-base p-0 m-0">Preview</h3>
             <div
-              className={`mt-[-10px] p-2 rounded-md border outline-none text-xs flex flex-col w-full
-    bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-black dark:text-white preview-html
-    overflow-y-auto overflow-x-hidden break-words whitespace-pre-wrap
-    ${isEditorVisible ? "h-[50%]" : "h-[100%]"}`}
+              className={`mt-[-10px] p-2 rounded-md border outline-none text-xs flex flex-col w-full bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-black dark:text-white preview-html overflow-y-auto overflow-x-hidden break-words whitespace-pre-wrap
+                ${isEditorVisible
+                ? "h-[50%]"
+                : "h-[100%]"}`}
               dangerouslySetInnerHTML={{ __html: htmlPreview }}
             />
           </>
@@ -461,14 +540,18 @@ ${currentTopic != null
                 className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-red-200 dark:bg-red-700 rounded-md text-xs"
                 onClick={() => {
                   if (!currentTopic) return;
+                  tags.forEach((tag) => {
+                    deleteTag(currentTopic, tag);
+                  });
                   invoke("delete_note", { word: currentTopic })
                     .then(() => {
                       const updatedTopics = topics.filter(topic => topic !== currentTopic);
                       setTopics(updatedTopics);
+                      refreshTags();
                       setDeleteTopic(false);
                       if (updatedTopics.length === 0) {
                         setCurrentTopic(null);
-                      setNote("");
+                        setNote("");
                       } else {
                         const random = updatedTopics[Math.floor(Math.random() * updatedTopics.length)];
                         setCurrentTopic(random);

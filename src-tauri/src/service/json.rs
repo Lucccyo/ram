@@ -31,16 +31,18 @@ fn save_data(path: PathBuf, data: &Data) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn get_tags(state: State<'_, AppState>, note_title: String) -> Result<Vec<String>, String> {
+pub fn get_tags(state: State<'_, AppState>, note_title: String) -> Vec<String> {
     let json_path = state.json_path.lock().unwrap().clone();
-    let data = load_data(json_path)?;
+    let data = match load_data(json_path) {
+        Ok(d) => d,
+        Err(_) => return Vec::new(),
+    };
     for note in data.notes {
         if note.title == note_title {
-            let tags = note.tags.into_iter().map(|tag| tag.label).collect();
-            return Ok(tags);
+            return note.tags.into_iter().map(|tag| tag.label).collect();
         }
     }
-    Ok(Vec::new())
+    Vec::new()
 }
 
 #[tauri::command]

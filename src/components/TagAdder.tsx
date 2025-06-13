@@ -53,7 +53,7 @@ export function TagAdder({ saveTag, allTags }: { saveTag: (tag: string) => void,
           <div
             key={index}
             onClick={() => handleTagSelect(tag)}
-            className="px-2 py-1 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-700"
+            className="px-2 py-1 cursor-pointer"
           >
             {tag}
           </div>
