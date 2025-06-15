@@ -44,6 +44,20 @@ export default function App() {
     setTheme(theme);
   }
 
+  const refreshFilteredTopics = () => {
+    if (selectedTags.length === 0) {
+      setFilteredTopics(topics);
+      console.log("no tags");
+    } else {
+      filterTopicsByTags();
+      console.log(selectedTags);
+    }
+  };
+
+  useEffect(() => {
+    refreshFilteredTopics();
+  }, [selectedTags, topics]);
+
   const filterTopicsByTags = async () => {
     if (selectedTags.length === 0) {
       setFilteredTopics(topics);
@@ -86,6 +100,7 @@ export default function App() {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const theme = stored ?? (prefersDark ? "dark" : "light");
     document.documentElement.classList.toggle("dark", theme === "dark");
+    console.log(theme);
   }, []);
 
   useEffect(() => {
@@ -330,28 +345,33 @@ export default function App() {
             <div className="my-4">
               <h4 className="text-sm mb-1">Filter by tags</h4>
               <div className="flex flex-wrap gap-1">
-                {allTags.map((tag) => {
-                  const isSelected = selectedTags.includes(tag);
-                  return (
-                    <button
-                      key={tag}
-                      onClick={() => {
-                        setSelectedTags((prev) =>
-                          isSelected
-                            ? prev.filter((t) => t !== tag)
-                            : [...prev, tag]
-                        );
-                      }}
-                      className={`px-2 py-1 rounded text-xs border ${isSelected
-                        ? "bg-zinc-200 dark:bg-zinc-700 border-white"
-                        : "bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white border-zinc-800"
-                        }`}
-                    >
-                      {tag}
-                    </button>
-                  );
-                })}
+                {allTags.length === 0 ? (
+                  <span className="text-sm text-zinc-500 dark:text-zinc-400">No tags.</span>
+                ) : (
+                  allTags.map((tag) => {
+                    const isSelected = selectedTags.includes(tag);
+                    return (
+                      <button
+                        key={tag}
+                        onClick={() => {
+                          setSelectedTags((prev) =>
+                            isSelected
+                              ? prev.filter((t) => t !== tag)
+                              : [...prev, tag]
+                          );
+                        }}
+                        className={`px-2 py-1 rounded text-xs border ${isSelected
+                          ? "bg-zinc-200 dark:bg-zinc-700 border-white"
+                          : "bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white border-zinc-800"
+                          }`}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  })
+                )}
               </div>
+
             </div>
             <div>
               <h3 className="text-base p-0 m-0 mt-6">Topics</h3>
@@ -405,6 +425,8 @@ export default function App() {
                   if (currentTopic != null) {
                     deleteTag(currentTopic, tag);
                     refreshTags();
+                    refreshTopics();
+                    setSelectedTags(prev => prev.filter(t => t !== tag));
                   }
                 }}
               >
@@ -468,8 +490,8 @@ export default function App() {
             <textarea
               className={`mt-[-10px] p-2 rounded-md border resize-y outline-none text-xs flex font-mono bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-black dark:text-white
                 ${isPreviewVisible
-                ? "h-[50%]"
-                : "h-[100%]" }`}
+                  ? "h-[50%]"
+                  : "h-[100%]"}`}
               value={note}
               onChange={(e) => setNote(e.target.value)}
               disabled={!currentTopic}
@@ -483,8 +505,8 @@ export default function App() {
             <div
               className={`mt-[-10px] p-2 rounded-md border outline-none text-xs flex flex-col w-full bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-black dark:text-white preview-html overflow-y-auto overflow-x-hidden break-words whitespace-pre-wrap
                 ${isEditorVisible
-                ? "h-[50%]"
-                : "h-[100%]"}`}
+                  ? "h-[50%]"
+                  : "h-[100%]"}`}
               dangerouslySetInnerHTML={{ __html: htmlPreview }}
             />
           </>
