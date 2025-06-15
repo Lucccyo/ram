@@ -17,6 +17,8 @@ import {
 import "./index.css";
 import { TagAdder } from "./components/TagAdder"
 import { NoteTitle } from "./components/NoteTitle"
+import { ButtonIcon } from "./components/ButtonIcon"
+import { ButtonText } from "./components/ButtonText"
 
 export default function App() {
   const [showNewTopicModal, setShowNewTopicModal] = useState(false);
@@ -51,6 +53,28 @@ export default function App() {
       console.log(selectedTags);
     }
   };
+
+  const handleDeleteTopic = () => {
+    if (!currentTopic) return;
+    tags.forEach((tag) => {
+      deleteTag(currentTopic, tag);
+    });
+    invoke("delete_note", { word: currentTopic })
+      .then(() => {
+        const updatedTopics = topics.filter(topic => topic !== currentTopic);
+        setTopics(updatedTopics);
+        refreshTags();
+        setDeleteTopic(false);
+        if (updatedTopics.length === 0) {
+          setCurrentTopic(null);
+          setNote("");
+        } else {
+          const random = updatedTopics[Math.floor(Math.random() * updatedTopics.length)];
+          setCurrentTopic(random);
+        }
+      })
+      .catch(() => alert("Error deleting topic"));
+  }
 
   useEffect(() => {
     refreshFilteredTopics();
@@ -399,16 +423,16 @@ export default function App() {
       </div>
 
       <div className="flex p-2 flex-col gap-4 w-screen">
-          <NoteTitle
-            title={currentTopic || ""}
-            onRename={(newTitle) => {
-              confirmRenameTopic(newTitle);
-            }}
-          />
+        <NoteTitle
+          title={currentTopic || ""}
+          onRename={(newTitle) => {
+            confirmRenameTopic(newTitle);
+          }}
+        />
 
         <div className="flex flex-row gap-1">
           {tags.map((tag, index) => (
-            <span key={index} className="flex flex-row items-center justify-center gap-1 px-3 py-1 h-[32px] bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded mr-2">{tag}
+            <span key={index} className="flex flex-row items-center justify-center gap-1 px-3 py-1 h-[30px] bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded mr-2">{tag}
               <button
                 onClick={() => {
                   if (currentTopic != null) {
@@ -423,54 +447,50 @@ export default function App() {
               </button>
             </span>
           ))}
-          <div className="h-[32px]">
+          <div className="h-[30px]">
             <TagAdder saveTag={saveTag} allTags={allTags} />
           </div>
         </div>
 
         <div className="flex gap-2 items-center">
           <div className="flex gap-[2px] rounded-md border border-zinc-200 dark:border-zinc-700 p-[2px] transition-all duration-200">
-            <button
+            <ButtonIcon
               onClick={() => setViewMode("code")}
-              className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${viewMode === "code"
-                ? "bg-zinc-200 dark:bg-zinc-700"
-                : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              icon={<Pencil size={14} />}
+              className={`w-[30px] h-[30px]
+              ${viewMode === "code"
+                  ? "bg-zinc-200 dark:bg-zinc-700"
+                  : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 }`}
-            >
-              <Pencil size={14} />
-            </button>
-            <button
+            />
+            <ButtonIcon
               onClick={() => setViewMode("both")}
-              className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${viewMode === "both"
-                ? "bg-zinc-200 dark:bg-zinc-700"
-                : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              icon={<Columns2 size={14} />}
+              className={`w-[30px] h-[30px]
+              ${viewMode === "both"
+                  ? "bg-zinc-200 dark:bg-zinc-700"
+                  : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 }`}
-            >
-              <Columns2 size={14} />
-            </button>
-            <button
+            />
+            <ButtonIcon
               onClick={() => setViewMode("preview")}
-              className={`flex items-center w-[30px] h-[30px] rounded-md justify-center cursor-pointer p-1 ${viewMode === "preview"
-                ? "bg-zinc-200 dark:bg-zinc-700"
-                : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              icon={<Eye size={14} />}
+              className={`w-[30px] h-[30px]
+              ${viewMode === "preview"
+                  ? "bg-zinc-200 dark:bg-zinc-700"
+                  : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 }`}
-            >
-              <Eye size={14} />
-            </button>
+            />
           </div>
-
-          <button
+          <ButtonIcon
             onClick={() => setDeleteTopic(true)}
-            className={`flex justify-center items-center rounded-md cursor-pointer w-[36px] h-[36px] transition-all duration-200
-                ${currentTopic != null
-                ? "bg-red-200 dark:bg-red-700 hover:bg-red-300 dark:hover:bg-red-600"
-                : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"
-              }
-            `}
+            icon={<Trash2 size={14} />}
             disabled={!currentTopic}
-          >
-            <Trash2 size={14} />
-          </button>
+            className={`${currentTopic
+              ? "bg-red-200 dark:bg-red-700 hover:bg-red-300 dark:hover:bg-red-600"
+              : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"
+              }`}
+          />
         </div>
 
         {isEditorVisible && (
@@ -515,18 +535,16 @@ export default function App() {
               autoFocus
             />
             <div className="flex justify-end gap-2">
-              <button
-                className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-zinc-200 dark:bg-zinc-700 rounded-md text-xs"
+              <ButtonText
                 onClick={() => setShowNewTopicModal(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-green-200 dark:bg-green-700 rounded-md text-xs"
-                onClick={confirmAddTopic}
-              >
-                Add
-              </button>
+                title="Cancel"
+                className="bg-zinc-200 dark:bg-zinc-700"
+              />
+              <ButtonText
+                onClick={() => confirmAddTopic()}
+                title="Add"
+                className="bg-green-200 dark:bg-green-700"
+              />
             </div>
           </div>
         </div>
@@ -541,38 +559,16 @@ export default function App() {
               <span>This action cannot be undone.</span>
             </div>
             <div className="flex justify-end gap-2">
-              <button
-                className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-zinc-200 dark:bg-zinc-700 rounded-md text-xs"
+              <ButtonText
                 onClick={() => setDeleteTopic(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-red-200 dark:bg-red-700 rounded-md text-xs"
-                onClick={() => {
-                  if (!currentTopic) return;
-                  tags.forEach((tag) => {
-                    deleteTag(currentTopic, tag);
-                  });
-                  invoke("delete_note", { word: currentTopic })
-                    .then(() => {
-                      const updatedTopics = topics.filter(topic => topic !== currentTopic);
-                      setTopics(updatedTopics);
-                      refreshTags();
-                      setDeleteTopic(false);
-                      if (updatedTopics.length === 0) {
-                        setCurrentTopic(null);
-                        setNote("");
-                      } else {
-                        const random = updatedTopics[Math.floor(Math.random() * updatedTopics.length)];
-                        setCurrentTopic(random);
-                      }
-                    })
-                    .catch(() => alert("Error deleting topic"));
-                }}
-              >
-                Delete
-              </button>
+                title="Cancel"
+                className="bg-zinc-200 dark:bg-zinc-700"
+              />
+              <ButtonText
+                onClick={() => { handleDeleteTopic() }}
+                title="Delete"
+                className="bg-red-200 dark:bg-red-700"
+              />
             </div>
           </div>
         </div>
