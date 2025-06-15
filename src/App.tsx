@@ -16,17 +16,15 @@ import {
 
 import "./index.css";
 import { TagAdder } from "./components/TagAdder"
+import { NoteTitle } from "./components/NoteTitle"
 
 export default function App() {
   const [showNewTopicModal, setShowNewTopicModal] = useState(false);
   const [search, setSearch] = useState("");
   const [newTopicInput, setNewTopicInput] = useState("");
-  const [renameTopicInput, setRenameTopicInput] = useState("");
-  const [renameTopic, setRenameTopic] = useState(false);
   const [topics, setTopics] = useState<string[]>([]);
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
   const [note, setNote] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [htmlPreview, setHtmlPreview] = useState("");
   const [viewMode, setViewMode] = useState<"code" | "both" | "preview">("both");
   const [menuCollapsed, setMenuCollapsed] = useState(false);
@@ -258,18 +256,15 @@ export default function App() {
     }
   };
 
-  const confirmRenameTopic = () => {
+  const confirmRenameTopic = (new_name: string) => {
     if (!currentTopic) return;
     const old_name = currentTopic.trim();
-    const new_name = renameTopicInput.trim();
     invoke("rename_note", { oldWord: old_name, newWord: new_name })
       .then(() => {
         setCurrentTopic(new_name.trim());
         refreshTopics();
-        setRenameTopic(false);
-        setRenameTopicInput('');
       })
-      .catch((e) => setError(e));
+      .catch((e) => alert(e));
   };
 
   const confirmAddTopic = () => {
@@ -404,18 +399,12 @@ export default function App() {
       </div>
 
       <div className="flex p-2 flex-col gap-4 w-screen">
-        <div className="flex flex-row justify-between items-center">
-          <h2 className="text-2xl m-0 p-0">{currentTopic || "No data."}</h2>
-          <button
-            onClick={() => setRenameTopic(true)}
-            className={`flex justify-center items-center rounded-md cursor-pointer  transition-all duration-200 mr-2 py-2 px-4
-                ${currentTopic != null
-                ? "bg-zinc-200 dark:bg-zinc-800"
-                : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"
-              }
-            `}
-          > Edit </button>
-        </div>
+          <NoteTitle
+            title={currentTopic || ""}
+            onRename={(newTitle) => {
+              confirmRenameTopic(newTitle);
+            }}
+          />
 
         <div className="flex flex-row gap-1">
           {tags.map((tag, index) => (
@@ -589,43 +578,6 @@ export default function App() {
         </div>
       )}
 
-      {renameTopic && (
-        <div className="fixed inset-0 bg-zinc-900 bg-opacity-50 flex justify-center items-center z-999">
-          <div className="flex flex-col gap-2 bg-white dark:bg-zinc-800 p-4 rounded-md shadow-md">
-            <h3 className="m-0 p-0">Rename Topic</h3>
-            <input
-              type="text"
-              value={renameTopicInput}
-              onChange={(e) => setRenameTopicInput(e.target.value)}
-              className="p-2 text-xs border rounded-md bborder-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800"
-              placeholder="Enter a new name"
-              autoFocus
-            />
-            <span className="h-6 w-[230px] text-red-500"> {error} </span>
-            <div className="flex justify-end gap-2">
-              <button
-                className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-zinc-200 dark:bg-zinc-700 rounded-md text-xs"
-                onClick={() => {
-                  setRenameTopic(false);
-                  setRenameTopicInput('');
-                  setError(null);
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                className="flex cursor-pointer gap-2 items-center justify-center p-2 bg-green-200 dark:bg-green-700 rounded-md text-xs"
-                onClick={() => {
-                  confirmRenameTopic();
-                  setError(null);
-                }}
-              >
-                Rename
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
