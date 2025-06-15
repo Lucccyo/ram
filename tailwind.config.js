@@ -5,36 +5,37 @@ export default {
   theme: {
     extend: {
       colors: {
-        'background-light': '#ffffff',
-        'background-dark': '#04040f',
+        'background-light': '#eff1f5',
+        'background-dark': '#24273a',
 
-        'surface-light': '#dddbff',
-        'surface-dark': '#0b0b24',
+        'surface-light': '#e6e9ef',
+        'surface-dark': '#1e2030',
 
-        'txt-principal-light': '#2f4a60',
-        'txt-principal-dark': '#f1f1f1',
+        'txt-principal-light': '#4c4f69',
+        'txt-principal-dark': '#cad3f5',
 
-        'txt-secondary-light': '#6b7d8f',
-        'txt-secondary-dark': '#c9d1d9',
+        'txt-secondary-light': '#9ca0b0',
+        'txt-secondary-dark': '#6e738d',
 
-        'destructive-action-light': '#e63946',
-        'destructive-action-dark': '#e63946',
+        'destructive-action-light': '#d20f39',
+        'destructive-action-dark': '#ed8796',
 
-        'constructive-action-light': '#ffc300',
-        'constructive-action-dark': '#ffc300',
+        'constructive-action-light': '#fe640b',
+        'constructive-action-dark': '#f5a97f',
 
-        'action-light': '#5e90b5',
-        'action-dark': '#5e90b5',
+        'action-light': '#1e66f5',
+        'action-dark': '#8aadf4',
 
-        'soft-light': '#ededed',
-        'soft-dark': '#324759',
+        'soft-light': '#dce0e8',
+        'soft-dark': '#313244',
 
-        'links-light': '#457b9d',
-        'links-dark': '#457b9d',
+        'links-light': '#209fb5',
+        'links-dark': '#8bd5ca',
 
-        'markdown-light': '#f5f9fb',
-        'markdown-dark': '#273947',
-      },
+        'markdown-light': '#fafafa',
+        'markdown-dark': '#1e2030',
+      }
+
     },
   },
   plugins: [],

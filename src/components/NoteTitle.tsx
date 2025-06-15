@@ -31,7 +31,7 @@ export function NoteTitle({ title, onRename, onDelete }: NoteTitleProps) {
       {isEditing ? (
         <>
           <input
-            className="text-4xl rounded-md m-0 p-0 bg-transparent bg-surface px-1"
+            className="text-3xl rounded-md m-0 p-0 bg-transparent bg-surface px-1"
             value={inputValue}
             onChange={e => setInputValue(e.target.value)}
             autoFocus
@@ -56,7 +56,7 @@ export function NoteTitle({ title, onRename, onDelete }: NoteTitleProps) {
         </>
       ) : (
         <>
-          <h2 className="text-4xl m-0 p-0">{title || "No data."}</h2>
+          <h2 className="text-3xl m-0 p-0">{title || "No data."}</h2>
           <ButtonText
             onClick={() => {
               setInputValue(title);

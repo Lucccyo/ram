@@ -362,7 +362,7 @@ export default function App() {
               <h4 className="text-sm mb-1">Filter by tags</h4>
               <div className="flex flex-wrap gap-1">
                 {allTags.length === 0 ? (
-                  <span className="text-sm text-soft">No tags.</span>
+                  <span className="text-xs text-secondary">No tags.</span>
                 ) : (
                   allTags.map((tag) => {
                     const isSelected = selectedTags.includes(tag);
@@ -378,7 +378,7 @@ export default function App() {
                         }}
                         className={`px-2 py-1 rounded text-xs ${isSelected
                           ? "bg-constructive text-inverse"
-                          : "bg-soft text-primary"
+                          : "bg-soft text-secondary"
                           }`}
                       >
                         {tag}
@@ -406,7 +406,7 @@ export default function App() {
                       key={index}
                       onClick={() => setCurrentTopic(topic)}
                       className={`text-xs cursor-pointer px-2 py-1 rounded-md mb-1 ${topic === currentTopic
-                        ? "bg-action"
+                        ? "bg-action text-inverse"
                         : "bg-transparent"
                         } truncate`}
                     >
@@ -455,7 +455,7 @@ export default function App() {
               icon={<Pencil size={14} />}
               className={`w-[30px] h-[30px]
               ${viewMode === "code"
-                  ? "bg-markdown"
+                  ? "bg-constructive text-inverse"
                   : "bg-surface"
                 }`}
             />
@@ -464,7 +464,7 @@ export default function App() {
               icon={<Columns2 size={14} />}
               className={`w-[30px] h-[30px]
               ${viewMode === "both"
-                  ? "bg-markdown"
+                  ? "bg-constructive text-inverse"
                   : "bg-surface"
                 }`}
             />
@@ -473,7 +473,7 @@ export default function App() {
               icon={<Eye size={14} />}
               className={`w-[30px] h-[30px]
               ${viewMode === "preview"
-                  ? "bg-markdown"
+                  ? "bg-constructive text-inverse"
                   : "bg-surface"
                 }`}
             />

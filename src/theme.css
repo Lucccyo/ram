@@ -16,7 +16,7 @@
   }
 
   .text-inverse {
-    @apply text-txt-principal-dark dark:text-txt-principal-light;
+    @apply text-surface-light dark:text-surface-dark;
   }
 
   .text-secondary {

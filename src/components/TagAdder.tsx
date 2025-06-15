@@ -42,7 +42,7 @@ export function TagAdder({ saveTag, allTags }: { saveTag: (tag: string) => void,
         <div className="fixed">
           <input
             ref={inputRef}
-            className="h-[30px] w-[200px] px-2 bg-soft rounded-t-md mr-2"
+            className="h-[30px] w-[200px] px-2 bg-soft rounded-md mr-2"
             autoFocus
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
