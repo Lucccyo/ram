@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .bg-background {
+    @apply bg-background-light dark:bg-background-dark;
+  }
+
+  .bg-surface {
+    @apply bg-surface-light dark:bg-surface-dark;
+  }
+
+  .text-primary {
+    @apply text-txt-principal-light dark:text-txt-principal-dark;
+  }
+
+  .text-inverse {
+    @apply text-txt-principal-dark dark:text-txt-principal-light;
+  }
+
+  .text-secondary {
+    @apply text-txt-secondary-light dark:text-txt-secondary-dark;
+  }
+
+  .text-link {
+    @apply text-links-light dark:text-links-dark;
+  }
+
+  .bg-action {
+    @apply bg-action-light dark:bg-action-dark;
+  }
+
+  .text-action {
+    @apply text-action-light dark:text-action-dark;
+  }
+
+  .bg-destructive {
+    @apply bg-destructive-action-light dark:bg-destructive-action-dark;
+  }
+
+  .bg-constructive {
+    @apply bg-constructive-action-light dark:bg-constructive-action-dark;
+  }
+
+  .bg-soft {
+    @apply bg-soft-light dark:bg-soft-dark;
+  }
+
+  .border-soft {
+    @apply border-soft-light dark:border-soft-dark;
+  }
+
+  .text-soft {
+    @apply text-soft-light dark:text-soft-dark;
+  }
+
+  .bg-markdown {
+    @apply bg-markdown-light dark:bg-markdown-dark;
+  }
+
+  .text-background {
+    @apply text-background-light dark:text-background-dark;
+  }
+}

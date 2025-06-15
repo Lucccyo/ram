@@ -5,7 +5,6 @@ import {
   Menu,
   X,
   Dices,
-  Trash2,
   Plus,
   Columns2,
   Eye,
@@ -30,7 +29,6 @@ export default function App() {
   const [htmlPreview, setHtmlPreview] = useState("");
   const [viewMode, setViewMode] = useState<"code" | "both" | "preview">("both");
   const [menuCollapsed, setMenuCollapsed] = useState(false);
-  const [deleteTopic, setDeleteTopic] = useState(false);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [theme, setTheme] = useState("light")
   const [tags, setTags] = useState<string[]>([]);
@@ -64,7 +62,6 @@ export default function App() {
         const updatedTopics = topics.filter(topic => topic !== currentTopic);
         setTopics(updatedTopics);
         refreshTags();
-        setDeleteTopic(false);
         if (updatedTopics.length === 0) {
           setCurrentTopic(null);
           setNote("");
@@ -318,22 +315,22 @@ export default function App() {
   const isPreviewVisible = viewMode === "preview" || viewMode === "both";
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-background">
       <div
-        className={`p-2 border-r text-xs border-r-zinc-200 dark:border-r-zinc-700 box-border ${menuCollapsed ? "" : "w-[20em]"
+        className={`p-2 text-xs bg-surface text-primary ${menuCollapsed ? "" : "w-[20em]"
           }`}
       >
         <div className="flex gap-2 flex-col">
           <button
             onClick={() => setMenuCollapsed(!menuCollapsed)}
-            className="hover:bg-zinc-100 dark:hover:bg-zinc-800 p-1 rounded-md transition-all duration-200 cursor-pointer flex items-center gap-2"
+            className="text-action p-1 rounded-md transition-all duration-200 cursor-pointer flex items-center gap-2"
           >
             {menuCollapsed ? <Menu size={16} /> : <X size={16} />}
           </button>
 
           <button
             onClick={addNewTopic}
-            className="hover:bg-zinc-100 dark:hover:bg-zinc-800 p-1 rounded-md transition-all duration-200 cursor-pointer flex items-center gap-2"
+            className="text-action p-1 rounded-md transition-all duration-200 cursor-pointer flex items-center gap-2"
           >
             <Plus size={16} />
             {!menuCollapsed && <span>Add</span>}
@@ -342,7 +339,7 @@ export default function App() {
           <button
             onClick={randomTopic}
             disabled={topics.length === 0}
-            className="hover:bg-zinc-100 dark:hover:bg-zinc-800 p-1 rounded-md transition-all duration-200 cursor-pointer flex items-center gap-2"
+            className="text-action p-1 rounded-md transition-all duration-200 cursor-pointer flex items-center gap-2"
           >
             <Dices size={16} />
             {!menuCollapsed && <span>Random</span>}
@@ -352,7 +349,7 @@ export default function App() {
               const newTheme = document.documentElement.classList.contains("dark") ? "light" : "dark";
               storeTheme(newTheme);
             }}
-            className="hover:bg-zinc-100 dark:hover:bg-zinc-800 p-1 rounded-md transition-all duration-200 cursor-pointer flex items-center gap-2"
+            className="text-action p-1 rounded-md transition-all duration-200 cursor-pointer flex items-center gap-2"
           >
             {theme == "dark" ? <Sun size={16} /> : <Moon size={16} />}
             {!menuCollapsed && <span>{theme == "dark" ? "Light" : "Dark"} mode</span>}
@@ -365,7 +362,7 @@ export default function App() {
               <h4 className="text-sm mb-1">Filter by tags</h4>
               <div className="flex flex-wrap gap-1">
                 {allTags.length === 0 ? (
-                  <span className="text-sm text-zinc-500 dark:text-zinc-400">No tags.</span>
+                  <span className="text-sm text-soft">No tags.</span>
                 ) : (
                   allTags.map((tag) => {
                     const isSelected = selectedTags.includes(tag);
@@ -379,9 +376,9 @@ export default function App() {
                               : [...prev, tag]
                           );
                         }}
-                        className={`px-2 py-1 rounded text-xs border ${isSelected
-                          ? "bg-zinc-200 dark:bg-zinc-700 border-white"
-                          : "bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white border-zinc-800"
+                        className={`px-2 py-1 rounded text-xs ${isSelected
+                          ? "bg-constructive text-inverse"
+                          : "bg-soft text-primary"
                           }`}
                       >
                         {tag}
@@ -399,7 +396,7 @@ export default function App() {
                 placeholder="Search topic..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full mb-2 mt-1 px-2 py-1 rounded-md text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
+                className="w-full mb-2 mt-1 px-2 py-1 rounded-md text-sm bg-background"
               />
               <ul className="list-none p-0 m-0 max-h-[70vh] overflow-y-auto pr-1 mt-2">
                 {filteredTopics
@@ -408,9 +405,9 @@ export default function App() {
                     <li
                       key={index}
                       onClick={() => setCurrentTopic(topic)}
-                      className={`text-xs cursor-pointer px-2 py-1 rounded-md transition-all duration-200 mb-1 ${topic === currentTopic
-                        ? "bg-zinc-200 dark:bg-zinc-700"
-                        : "bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                      className={`text-xs cursor-pointer px-2 py-1 rounded-md mb-1 ${topic === currentTopic
+                        ? "bg-action"
+                        : "bg-transparent"
                         } truncate`}
                     >
                       {topic}
@@ -425,14 +422,13 @@ export default function App() {
       <div className="flex p-2 flex-col gap-4 w-screen">
         <NoteTitle
           title={currentTopic || ""}
-          onRename={(newTitle) => {
-            confirmRenameTopic(newTitle);
-          }}
+          onRename={confirmRenameTopic}
+          onDelete={handleDeleteTopic}
         />
 
         <div className="flex flex-row gap-1">
           {tags.map((tag, index) => (
-            <span key={index} className="flex flex-row items-center justify-center gap-1 px-3 py-1 h-[30px] bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded mr-2">{tag}
+            <span key={index} className="flex flex-row items-center justify-center gap-1 px-3 py-1 h-[30px] bg-soft text-secondary rounded mr-2">{tag}
               <button
                 onClick={() => {
                   if (currentTopic != null) {
@@ -453,14 +449,14 @@ export default function App() {
         </div>
 
         <div className="flex gap-2 items-center">
-          <div className="flex gap-[2px] rounded-md border border-zinc-200 dark:border-zinc-700 p-[2px] transition-all duration-200">
+          <div className="flex gap-[2px] rounded-md border border-soft p-[2px] transition-all duration-200">
             <ButtonIcon
               onClick={() => setViewMode("code")}
               icon={<Pencil size={14} />}
               className={`w-[30px] h-[30px]
               ${viewMode === "code"
-                  ? "bg-zinc-200 dark:bg-zinc-700"
-                  : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  ? "bg-markdown"
+                  : "bg-surface"
                 }`}
             />
             <ButtonIcon
@@ -468,8 +464,8 @@ export default function App() {
               icon={<Columns2 size={14} />}
               className={`w-[30px] h-[30px]
               ${viewMode === "both"
-                  ? "bg-zinc-200 dark:bg-zinc-700"
-                  : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  ? "bg-markdown"
+                  : "bg-surface"
                 }`}
             />
             <ButtonIcon
@@ -477,27 +473,27 @@ export default function App() {
               icon={<Eye size={14} />}
               className={`w-[30px] h-[30px]
               ${viewMode === "preview"
-                  ? "bg-zinc-200 dark:bg-zinc-700"
-                  : "bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  ? "bg-markdown"
+                  : "bg-surface"
                 }`}
             />
           </div>
-          <ButtonIcon
+          {/* <ButtonIcon
             onClick={() => setDeleteTopic(true)}
             icon={<Trash2 size={14} />}
             disabled={!currentTopic}
             className={`${currentTopic
-              ? "bg-red-200 dark:bg-red-700 hover:bg-red-300 dark:hover:bg-red-600"
+              ? "bg-destructive text-inverse"
               : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed"
               }`}
-          />
+          /> */}
         </div>
 
         {isEditorVisible && (
           <>
             <h3 className="text-base p-0 m-0">Editor</h3>
             <textarea
-              className={`mt-[-10px] p-2 rounded-md border resize-y outline-none text-xs flex font-mono bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-black dark:text-white
+              className={`mt-[-10px] p-2 rounded-md resize-y outline-none text-xs flex font-mono bg-surface
                 ${isPreviewVisible
                   ? "h-[50%]"
                   : "h-[100%]"}`}
@@ -512,7 +508,7 @@ export default function App() {
           <>
             <h3 className="text-base p-0 m-0">Preview</h3>
             <div
-              className={`prose prose-sm markdown mt-[-10px] p-2 rounded-md border outline-none text-xs flex flex-col w-full bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-black dark:text-white preview-html overflow-y-auto overflow-x-hidden break-words whitespace-pre-wrap
+              className={`prose prose-sm markdown mt-[-10px] p-2 rounded-md outline-none text-xs flex flex-col w-full bg-surface preview-html overflow-y-auto overflow-x-hidden break-words whitespace-pre-wrap
                 ${isEditorVisible
                   ? "h-[50%]"
                   : "h-[100%]"}`}
@@ -523,14 +519,14 @@ export default function App() {
       </div>
 
       {showNewTopicModal && (
-        <div className="fixed inset-0 bg-zinc-900 bg-opacity-50 flex justify-center items-center z-999">
-          <div className="flex flex-col gap-2 bg-white dark:bg-zinc-800 p-4 rounded-md shadow-md">
+        <div className="fixed inset-0 bg-slate-900 bg-opacity-30 flex justify-center items-center z-999">
+          <div className="flex flex-col gap-2 bg-background p-4 rounded-md shadow-md">
             <h3 className="m-0 p-0">New Topic</h3>
             <input
               type="text"
               value={newTopicInput}
               onChange={(e) => setNewTopicInput(e.target.value)}
-              className="p-2 text-xs border rounded-md border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800"
+              className="p-2 text-xs rounded-md bg-surface"
               placeholder="Enter topic name"
               autoFocus
             />
@@ -538,42 +534,17 @@ export default function App() {
               <ButtonText
                 onClick={() => setShowNewTopicModal(false)}
                 title="Cancel"
-                className="bg-zinc-200 dark:bg-zinc-700"
+                className="bg-surface"
               />
               <ButtonText
                 onClick={() => confirmAddTopic()}
                 title="Add"
-                className="bg-green-200 dark:bg-green-700"
+                className="bg-action text-inverse"
               />
             </div>
           </div>
         </div>
       )}
-
-      {deleteTopic && (
-        <div className="fixed inset-0 bg-zinc-900 bg-opacity-50 flex justify-center items-center z-999">
-          <div className="flex flex-col gap-2 bg-white dark:bg-zinc-800 p-4 rounded-md shadow-md">
-            <h3 className="m-0 p-0">Delete Topic</h3>
-            <div className="flex flex-col text-xs">
-              <span>Are you sure you want to delete this topic?</span>
-              <span>This action cannot be undone.</span>
-            </div>
-            <div className="flex justify-end gap-2">
-              <ButtonText
-                onClick={() => setDeleteTopic(false)}
-                title="Cancel"
-                className="bg-zinc-200 dark:bg-zinc-700"
-              />
-              <ButtonText
-                onClick={() => { handleDeleteTopic() }}
-                title="Delete"
-                className="bg-red-200 dark:bg-red-700"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }

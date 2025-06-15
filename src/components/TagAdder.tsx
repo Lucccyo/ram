@@ -37,24 +37,24 @@ export function TagAdder({ saveTag, allTags }: { saveTag: (tag: string) => void,
   };
 
   return (
-    <div ref={wrapperRef} className="fixed inline-block">
+    <div ref={wrapperRef} className="fixed inline-block text-secondary">
       {adding ? (
         <div className="fixed">
           <input
             ref={inputRef}
-            className="h-[30px] w-[200px] px-2 border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white rounded mr-2"
+            className="h-[30px] w-[200px] px-2 bg-soft rounded-t-md mr-2"
             autoFocus
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
           />
-          <div className="absolute z-[99] mt-1 border border-zinc-200 dark:border-zinc-700 rounded bg-white dark:bg-zinc-800"
+          <div className="absolute z-[99] bg-soft rounded-b-md"
             style={{ maxHeight: "200px", overflow: "scroll", }}>
             {allTags.map((tag, index) => (
               <div
                 key={index}
                 onClick={() => handleTagSelect(tag)}
-                className="px-2 cursor-pointer hover:bg-zinc-100 hover:dark:bg-zinc-700 w-[200px]"
+                className="px-2 cursor-pointer w-[200px]"
               >
                 {tag}
               </div>
@@ -65,7 +65,7 @@ export function TagAdder({ saveTag, allTags }: { saveTag: (tag: string) => void,
         <ButtonIcon
           onClick={() => setAdding(true)}
           icon={<Plus size={14} />}
-          className="h-[30px] w-[30px] bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+          className="h-[30px] w-[30px] bg-soft"
         />
       )}
     </div>

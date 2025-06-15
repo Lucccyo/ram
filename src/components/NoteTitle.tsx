@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { ButtonText } from "./ButtonText"
+import { ButtonText } from "./ButtonText";
+import ConfirmDeleteModal from "./ConfirmDeleteModal";
 
 interface NoteTitleProps {
   title: string;
   onRename: (newTitle: string) => void;
+  onDelete: () => void;
 }
 
-export function NoteTitle({ title, onRename }: NoteTitleProps) {
+export function NoteTitle({ title, onRename, onDelete }: NoteTitleProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState(title);
+  const [isModalOpen, setModalOpen] = useState(false);
 
   const handleSave = () => {
     const trimmed = inputValue.trim();
@@ -24,40 +27,57 @@ export function NoteTitle({ title, onRename }: NoteTitleProps) {
   };
 
   return (
-    <div className="flex flex-row justify-between items-center gap-2 mb-2">
+    <div className="flex flex-row justify-between items-center gap-2 my-2">
       {isEditing ? (
         <>
           <input
-            className="text-2xl m-0 p-0 bg-transparent border-b border-zinc-400 dark:border-zinc-600 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 px-1"
+            className="text-4xl rounded-md m-0 p-0 bg-transparent bg-surface px-1"
             value={inputValue}
             onChange={e => setInputValue(e.target.value)}
             autoFocus
           />
           <div className="flex flex-row gap-2">
             <ButtonText
-              onClick={() => handleSave()}
-              className="bg-green-200 dark:bg-green-800"
+              onClick={handleSave}
+              className="bg-action text-inverse"
               title="Save"
             />
             <ButtonText
-              onClick={() => handleCancel()}
-              className="bg-zinc-200 dark:bg-zinc-800"
+              onClick={() => setModalOpen(true)}
+              className="bg-destructive"
+              title="Delete"
+            />
+            <ButtonText
+              onClick={handleCancel}
+              className="bg-surface"
               title="Cancel"
             />
           </div>
         </>
       ) : (
         <>
-          <h2 className="text-2xl m-0 p-0">{title || "No data."}</h2>
-            <ButtonText
-              onClick={() => {
-                setInputValue(title);
-                setIsEditing(true) }}
-              className={`${title ? "bg-zinc-200 dark:bg-zinc-800" : "text-zinc-500 cursor-not-allowed"}`}
-              title="Edit"
-            />
+          <h2 className="text-4xl m-0 p-0">{title || "No data."}</h2>
+          <ButtonText
+            onClick={() => {
+              setInputValue(title);
+              setIsEditing(true);
+            }}
+            className="bg-action text-inverse"
+            title="Edit"
+          />
         </>
       )}
+
+      <ConfirmDeleteModal
+        isOpen={isModalOpen}
+        onCancel={() => setModalOpen(false)}
+        onDelete={() => {
+          setModalOpen(false);
+          onDelete();
+          handleCancel();
+        }}
+        title={title}
+      />
     </div>
   );
 }
