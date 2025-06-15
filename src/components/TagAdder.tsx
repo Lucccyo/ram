@@ -41,7 +41,7 @@ export function TagAdder({ saveTag, allTags }: { saveTag: (tag: string) => void,
     <div className="fixed">
       <input
         ref={inputRef}
-        className="h-[32px] px-2 border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white rounded mr-2"
+        className="h-[32px] w-[200px] px-2 border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white rounded mr-2"
         autoFocus
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
@@ -53,7 +53,7 @@ export function TagAdder({ saveTag, allTags }: { saveTag: (tag: string) => void,
           <div
             key={index}
             onClick={() => handleTagSelect(tag)}
-            className="px-2 py-1 cursor-pointer"
+            className="px-2 py-1 cursor-pointer hover:bg-zinc-100 hover:dark:bg-zinc-700 w-[200px]"
           >
             {tag}
           </div>
