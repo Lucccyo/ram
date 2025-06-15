@@ -34,3 +34,23 @@ body {
   word-break: break-word;
   white-space: pre-wrap;
 }
+.markdown p,
+.markdown h1,
+.markdown h2,
+.markdown ul,
+.markdown ol {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+  line-height: 1;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}

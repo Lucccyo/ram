@@ -492,7 +492,7 @@ export default function App() {
           <>
             <h3 className="text-base p-0 m-0">Preview</h3>
             <div
-              className={`mt-[-10px] p-2 rounded-md border outline-none text-xs flex flex-col w-full bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-black dark:text-white preview-html overflow-y-auto overflow-x-hidden break-words whitespace-pre-wrap
+              className={`prose prose-sm markdown mt-[-10px] p-2 rounded-md border outline-none text-xs flex flex-col w-full bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-black dark:text-white preview-html overflow-y-auto overflow-x-hidden break-words whitespace-pre-wrap
                 ${isEditorVisible
                   ? "h-[50%]"
                   : "h-[100%]"}`}
