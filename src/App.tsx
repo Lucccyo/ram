@@ -377,7 +377,7 @@ export default function App() {
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full mb-2 mt-1 px-2 py-1 rounded-md text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
               />
-              <ul className="list-none p-0 m-0 max-h-[780px] overflow-y-auto pr-1 mt-2">
+              <ul className="list-none p-0 m-0 max-h-[70vh] overflow-y-auto pr-1 mt-2">
                 {filteredTopics
                   .filter((t) => t.toLowerCase().includes(search.toLowerCase()))
                   .map((topic, index) => (
