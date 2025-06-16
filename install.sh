@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cp ./img/logo_ram.png ~/.local/share/applications/ram.png
 export NO_STRIP=false
 mkdir ~/programs
 cd src-tauri/
@@ -13,5 +14,6 @@ cat > ram.desktop << EOF
 Type=Application
 Name=RAM
 Exec=$HOME/programs/ram/ram.AppImage
+Icon=$HOME/.local/share/applications/ram.png
 Terminal=false
 EOF
