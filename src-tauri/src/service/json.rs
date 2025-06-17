@@ -110,3 +110,28 @@ pub fn get_all_tags(state: State<'_, AppState>) -> Result<Vec<String>, String> {
     let tags = data.tags.into_iter().map(|tag| tag.label).collect();
     Ok(tags)
 }
+
+#[tauri::command]
+pub fn rename_note_tag(
+    state: State<'_, AppState>,
+    old_word: String,
+    new_word: String,
+) -> Result<(), String> {
+    let json_path = state.json_path.lock().unwrap().clone();
+    let mut data = load_data(json_path.clone()).unwrap_or(Data {
+        notes: Vec::new(),
+        tags: Vec::new(),
+    });
+    let note = data.notes.iter_mut().find(|n| n.title == old_word);
+    if let Some(note) = note {
+        note.title = new_word.clone();
+        for tag in &mut data.tags {
+            if tag.uses.contains(&old_word) {
+                tag.uses.retain(|t| t != &old_word);
+                tag.uses.push(new_word.clone());
+            }
+        }
+        save_data(json_path, &data)?;
+    }
+    Ok(())
+}

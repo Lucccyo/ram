@@ -286,6 +286,9 @@ export default function App() {
         refreshTopics();
       })
       .catch((e) => alert(e));
+    invoke("rename_note_tag", {oldWord: old_name, newWord: new_name})
+      .then(refreshTags)
+      .catch((e) => alert(e));
   };
 
   const confirmAddTopic = () => {

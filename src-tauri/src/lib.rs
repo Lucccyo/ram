@@ -7,7 +7,7 @@ mod service;
 use service::file::{
     create_note, delete_note, list_notes, load_note, rename_note, save_note, write_note,
 };
-use service::json::{add_tag, get_tags, delete_tag, get_all_tags};
+use service::json::{add_tag, get_tags, delete_tag, get_all_tags, rename_note_tag};
 use std::sync::{Arc, Mutex};
 use std::fs::{OpenOptions};
 
@@ -58,7 +58,8 @@ pub fn run() {
             get_tags,
             add_tag,
             delete_tag,
-            get_all_tags
+            get_all_tags,
+            rename_note_tag
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
