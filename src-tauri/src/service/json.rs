@@ -62,17 +62,15 @@ pub fn add_tag(state: State<'_, AppState>, tag_label: String, note_title: String
     for note in &mut data.notes {
         if note.title == note_title {
             if let Some(existing_tag) = data.tags.iter_mut().find(|t| t.label == tag_label) {
-                if !existing_tag.uses.contains(&note_title) {
-                    existing_tag.uses.push(note_title.clone());
-                }
                 if !note.tags.iter().any(|t| t.label == tag_label) {
+                    existing_tag.use_count += 1;
                     note.tags.push(existing_tag.clone());
                 }
             } else {
                 let new_tag = Tag {
                     id: data.tags.len() as u32 + 1,
                     label: tag_label.clone(),
-                    uses: vec![note_title.clone()],
+                    use_count: 1,
                 };
                 data.tags.push(new_tag.clone());
                 note.tags.push(new_tag);
@@ -89,16 +87,20 @@ pub fn delete_tag(state: State<'_, AppState>, tag_label: String, note_title: Str
     let mut data = load_data(json_path.clone()).unwrap_or(Data { notes: Vec::new(), tags: Vec::new() });
     for note in &mut data.notes {
         if note.title == note_title {
+            let tag_was_present = note.tags.iter().any(|t| t.label == tag_label);
             note.tags.retain(|tag| tag.label != tag_label);
-            if let Some(existing_tag) = data.tags.iter_mut().find(|t| t.label == tag_label) {
-                existing_tag.uses.retain(|uses| uses != &note_title);
-                if existing_tag.uses.is_empty() {
-                    data.tags.retain(|t| t.label != tag_label);
+            if tag_was_present {
+                if let Some(existing_tag) = data.tags.iter_mut().find(|t| t.label == tag_label) {
+                    if existing_tag.use_count > 0 {
+                        existing_tag.use_count -= 1;
+                    }
                 }
             }
             break;
         }
     }
+
+    data.tags.retain(|t| t.use_count > 0);
     data.notes.retain(|note| !note.tags.is_empty());
     save_data(json_path, &data)
 }
@@ -126,9 +128,7 @@ pub fn rename_note_tag(
     if let Some(note) = note {
         note.title = new_word.clone();
         for tag in &mut data.tags {
-            if tag.uses.contains(&old_word) {
-                tag.uses.retain(|t| t != &old_word);
-                tag.uses.push(new_word.clone());
+            if note.tags.iter().any(|t| t.label == tag.label) {
             }
         }
         save_data(json_path, &data)?;

@@ -4,5 +4,5 @@ use serde::{Serialize, Deserialize};
 pub struct Tag {
     pub id: u32,
     pub label: String,
-    pub uses: Vec<String>,
+    pub use_count: i32,
 }
