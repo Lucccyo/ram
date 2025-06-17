@@ -320,7 +320,7 @@ export default function App() {
   return (
     <div className="flex h-screen bg-background">
       <div
-        className={`p-2 text-xs bg-surface text-primary ${menuCollapsed ? "" : "w-[20em]"
+        className={`p-2 text-xs bg-surface text-primary overflow-hidden ${menuCollapsed ? "" : "w-[25em]"
           }`}
       >
         <div className="flex gap-2 flex-col">
