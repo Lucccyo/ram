@@ -3,54 +3,51 @@
 @tailwind utilities;
 
 @layer base {
-h1, h2, h3, h4, h5, h6,
-p,
-ol, ul,
-li,
-pre,
-code,
-hr,
-table, thead, tbody, tr, th, td
-{
-  all: revert;
-}
-blockquote {
-    all: revert;
-    border-left: 4px solid #ccc;
-    padding-left: 1rem;
-    color: #666;
-    font-style: italic;
-    margin: 1em 0;
+  body {
+    @apply bg-white text-black dark:bg-zinc-900 dark:text-zinc-100;
   }
-.dark blockquote {
-  border-left-color: #444;
-  color: #aaa;
-}
-}
-body {
-  @apply bg-white text-black dark:bg-zinc-900 dark:text-zinc-100;
-}
-.preview-html * {
-  word-break: break-word;
-  white-space: pre-wrap;
-}
-.markdown p,
-.markdown h1,
-.markdown h2,
-.markdown ul,
-.markdown ol {
-  margin-top: 0.25rem;
-  margin-bottom: 0.25rem;
-  line-height: 1;
-}
 
-table {
-  border-collapse: collapse;
-  width: 100%;
-}
+  .preview-html * {
+    all: revert;
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
 
-th, td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: left;
+  .markdown p,
+  .markdown h1,
+  .markdown h2,
+  .markdown ul,
+  .markdown ol {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .preview-html blockquote {
+      all: revert;
+      border-left: 4px solid #ccc;
+      padding-left: 1rem;
+      color: #666;
+      font-style: italic;
+      margin: 1em 0;
+  }
+
+  .dark .preview-html blockquote {
+    border-left-color: #444;
+    color: #aaa;
+  }
+
+  .preview-html table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  .preview-html th, .preview-html td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+  }
+
+  .dark .preview-html th, .dark .preview-html td {
+    border: 1px solid #aaa;
+  }
 }
