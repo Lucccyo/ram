@@ -1,6 +1,6 @@
 # RAM
 
-`RAM` stands for Random Access Memory but refers in this context to an application for managing markdown notes in order to learn specific topics. New ones can be added (e.g., `type theory` or `red and black trees`) with a note attached and a random button helps distribute exploration evenly across all topics. All markdown files are stored localy in the `Documents` folder.
+`RAM` stands for Random Access Markdown but refers in this context to an application for managing markdown notes in order to learn specific topics. New ones can be added (e.g., `type theory` or `red and black trees`) with a note attached and a random button helps distribute exploration evenly across all topics. All markdown files are stored localy in the `Documents` folder.
 
 ## Installation
 > [!WARNING]
