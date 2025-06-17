@@ -326,14 +326,14 @@ export default function App() {
         <div className="flex gap-2 flex-col">
           <button
             onClick={() => setMenuCollapsed(!menuCollapsed)}
-            className="text-action p-1 rounded-md transition-all duration-200 cursor-pointer flex items-center gap-2"
+            className="text-action p-1 rounded-md cursor-pointer flex items-center gap-2"
           >
             {menuCollapsed ? <Menu size={16} /> : <X size={16} />}
           </button>
 
           <button
             onClick={addNewTopic}
-            className="text-action p-1 rounded-md transition-all duration-200 cursor-pointer flex items-center gap-2"
+            className="text-action p-1 rounded-md cursor-pointer flex items-center gap-2"
           >
             <Plus size={16} />
             {!menuCollapsed && <span>Add</span>}
@@ -342,7 +342,7 @@ export default function App() {
           <button
             onClick={randomTopic}
             disabled={topics.length === 0}
-            className="text-action p-1 rounded-md transition-all duration-200 cursor-pointer flex items-center gap-2"
+            className="text-action p-1 rounded-md cursor-pointer flex items-center gap-2"
           >
             <Dices size={16} />
             {!menuCollapsed && <span>Random</span>}
@@ -352,7 +352,7 @@ export default function App() {
               const newTheme = document.documentElement.classList.contains("dark") ? "light" : "dark";
               storeTheme(newTheme);
             }}
-            className="text-action p-1 rounded-md transition-all duration-200 cursor-pointer flex items-center gap-2"
+            className="text-action p-1 rounded-md cursor-pointer flex items-center gap-2"
           >
             {theme == "dark" ? <Sun size={16} /> : <Moon size={16} />}
             {!menuCollapsed && <span>{theme == "dark" ? "Light" : "Dark"} mode</span>}
@@ -452,7 +452,7 @@ export default function App() {
         </div>
 
         <div className="flex gap-2 items-center">
-          <div className="flex gap-[2px] rounded-md border border-soft p-[2px] transition-all duration-200">
+          <div className="flex gap-[2px] rounded-md border border-soft p-[2px]">
             <ButtonIcon
               onClick={() => setViewMode("code")}
               icon={<Pencil size={14} />}

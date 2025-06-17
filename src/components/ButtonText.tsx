@@ -9,7 +9,7 @@ export const ButtonText: React.FC<ButtonTextProps> = ({ title, className, ...pro
   return (
     <button
       {...props}
-      className={`${className} flex justify-center items-center rounded-md cursor-pointer transition-all duration-200 mr-2 py-2 px-4`}
+      className={`${className} flex justify-center items-center rounded-md cursor-pointer mr-2 py-2 px-4`}
     >
       {title}
     </button>
