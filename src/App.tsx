@@ -45,10 +45,8 @@ export default function App() {
   const refreshFilteredTopics = () => {
     if (selectedTags.length === 0) {
       setFilteredTopics(topics);
-      console.log("no tags");
     } else {
       filterTopicsByTags();
-      console.log(selectedTags);
     }
   };
 
@@ -306,12 +304,16 @@ export default function App() {
   };
 
   const randomTopic = () => {
-    if (topics.length < 2) return;
+    if (filteredTopics.length < 2)
+      if (filteredTopics.length == 1) {
+        setCurrentTopic(filteredTopics[0])
+      }
+      else { return };
     let index = 0;
     do {
-      index = Math.floor(Math.random() * topics.length);
-    } while (currentTopic == topics[index])
-    setCurrentTopic(topics[index]);
+      index = Math.floor(Math.random() * filteredTopics.length);
+    } while (currentTopic == filteredTopics[index])
+    setCurrentTopic(filteredTopics[index]);
   };
 
   const isEditorVisible = viewMode === "code" || viewMode === "both";
