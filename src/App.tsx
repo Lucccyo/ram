@@ -118,8 +118,8 @@ export default function App() {
     const stored = localStorage.getItem("theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const theme = stored ?? (prefersDark ? "dark" : "light");
+    setTheme(theme);
     document.documentElement.classList.toggle("dark", theme === "dark");
-    console.log(theme);
   }, []);
 
   useEffect(() => {
